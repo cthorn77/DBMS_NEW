@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -6,17 +7,20 @@ public class UserInterface {
 	private Scanner kb;
 	private String[] command;
 	private Table table;
+	private String tableName;
+	private ArrayList<String> items;
 	
 	public UserInterface(Scanner kb) {
 		this.kb = kb;
 	}
 	
+	@SuppressWarnings("unlikely-arg-type")
 	public void start() throws IOException {
 		System.out.println("Enter a command");
 		Boolean run = true;
 		
 		
-		while (true) {
+		while (run) {
 			String choice = kb.nextLine();
 			switch(parseString(choice)) {
 			case "CREATE":
@@ -36,9 +40,6 @@ public class UserInterface {
 				Boolean isValid = true;
 				Table table = new Table(intoFile);
 				String[] dataTypes = table.readDataTypes(intoFile + ".txt");
-				
-				System.out.println("DEBUG: DataTypes -> " + Arrays.toString(dataTypes));
-				System.out.println("DEBUG: Values -> " + Arrays.toString(values));
 
 				if (dataTypes.length == 0) {
 				    System.out.println("❌ Data types array is empty!");
@@ -47,9 +48,7 @@ public class UserInterface {
 
 				try {
 				    for (int i = 0, j = 0; i < values.length && j < dataTypes.length; i++, j++) {
-				        values[i] = values[i].trim(); // ✅ Trim spaces
-
-				        System.out.println("Checking -> " + values[i] + " (Expected: " + dataTypes[j] + ")");
+				        values[i] = values[i].trim(); // ✅ Trim space
 
 				        if (dataTypes[j].trim().equals("INTEGER")) {
 				            if (!values[i].matches("^-?\\d+$")) {
@@ -88,6 +87,42 @@ public class UserInterface {
 				    break;
 				}
 			
+			case "SELECT_FROM":
+				command = choice.replace(";", "").split(" ");
+				items = new ArrayList<>();
+				
+				for (String item : command) {
+					if (!item.equals("SELECT") && !items.equals("FROM")) {
+						items.add(item);
+					}
+				}
+				
+				tableName = items.get(items.size()-1);
+				table = new Table(tableName);
+				
+				table.selectItems(items, tableName + ".txt");
+				
+				break;
+			
+			case "SELECT_MULTIPLE_FROM":
+				command = choice.replace(";", "").split(" ");
+				items = new ArrayList<>();
+				
+				for (int i=1; i<command.length; i++) {
+					if (!command[i].trim().equals("FROM")) {
+						items.add(command[i].replace(",", "").trim());
+					} else {
+						continue;
+					}
+				}
+				
+				tableName = items.get(items.size()-1);
+				table = new Table(tableName);
+				
+				table.selectItems(items, tableName + ".txt");
+				
+				break;
+				
 			case "EXIT":
 				run = false;
 				break;
@@ -99,14 +134,24 @@ public class UserInterface {
 	}
 	
 	private static String parseString(String choice) {
-		String[] command = choice.split("\\(");
-		
-		if (command[0].contains("CREATE TABLE") && command[1].charAt(command[1].length()-1) == ';') {
-			return "CREATE";
-		} else if (command[0].contains("INSERT INTO") && command[2].charAt(command[2].length()-1) == ';' && command[1].contains("VALUES")) {
-			return "INSERT";
-		}
-		
-		return "invalid";
+	    String[] selectCommand = choice.split(" ");
+
+	    if (choice.startsWith("CREATE TABLE") && choice.endsWith(";")) {
+	        return "CREATE";
+	    } else if (choice.startsWith("INSERT INTO") && choice.contains("VALUES") && choice.endsWith(";")) {
+	        return "INSERT";
+	    } else if (choice.equals("EXIT")) {
+	        return "EXIT";
+	    } 
+	    // ✅ Fixing SELECT parsing
+	    else if (selectCommand[0].equals("SELECT") && selectCommand[2].equals("FROM") && selectCommand.length == 4 && choice.endsWith(";")) {
+	        return "SELECT_FROM";
+	    }
+	    else if (selectCommand[0].equals("SELECT") && selectCommand[1].contains(",") && selectCommand.length > 4 && choice.endsWith(";")) {
+	    	return "SELECT_MULTIPLE_FROM";
+	    }
+
+	    return "invalid";
 	}
+
 }

@@ -120,5 +120,175 @@ public class Table {
 	        return new String[0];
 	    }
 	}
+	
+	public void selectItems(ArrayList<String> items, String insertedString) throws IOException {
+		File insertedFile = new File(insertedString);
+		
+		if (!insertedFile.exists()) {
+			System.out.println("❌ File not found: " + insertedString);
+			return;
+		}
+		
+		try (RandomAccessFile raf = new RandomAccessFile(insertedFile, "rw")) {
+			String line;
+			int count;
+			String[] parts;
+			String addSpaces = "";
+			
+			if (items.isEmpty()) {
+				System.out.println("No columns selected");
+				return;
+			}
+			
+			if (items.get(0).equals("*")) {
+				raf.seek(0);
+				line = raf.readLine();
+				
+				if (line == null) {
+					System.out.println("❌ File is empty.");
+					return;
+				}
+				
+				System.out.println("📌 Table Schema: " + line);
+				System.out.println("📋 Table Data:");
+				
+				count=0;
+				while ((line=raf.readLine()) != null) {
+					count++;
+					parts = line.split(" ");
+					addSpaces = "";
+					for (int i=0; i<parts.length; i++) {
+						addSpaces += parts[i];
+						for (int j=parts[i].length(); j<15; j++) {
+							addSpaces += " ";
+						}
+					}
+					System.out.println(addSpaces);
+				}
+				
+				if (count == 0) {
+					System.out.println("Table is empty");
+				}
+			} else if (items.size() == 1) {
+				String[] tableItems;
+				raf.seek(0);
+				line = raf.readLine();
+				
+				if (line == null) {
+					System.out.println("❌ File is empty.");
+					return;
+				}
+				
+				tableItems = line.replace("{", "").replace("}", "").split(",\\s*");
+				int columnNumber = -1;
+				String[] dataParts;
+				
+				for (int i=0; i<tableItems.length; i++) {
+					if (tableItems[i].contains(items.get(0))) {
+						columnNumber = i;
+					}
+				}
+				
+				if (columnNumber == -1) {
+					System.out.println("Column does not exist");
+					return;
+				}
+				
+				System.out.println("📌 Table Schema: " + tableItems[columnNumber]);
+				System.out.println("📋 Table Data:");
+				
+				count = 0;
+				
+				while ((line=raf.readLine()) != null) {
+					count++;
+					dataParts = line.split(" ");
+					addSpaces = "";
+					for (int i=0; i<dataParts.length; i++) {
+						addSpaces += dataParts[i];
+						for (int j=dataParts[i].length(); j<15; j++) {
+							addSpaces += " ";
+						}
+					}
+					System.out.println(addSpaces);
+				}
+				
+				if (count == 0) {
+					System.out.println("Table is empty");
+				}
+				
+			} else {
+				String[] tableItems;
+				raf.seek(0);
+				line = raf.readLine();
+				
+				if (line == null) {
+					System.out.println("❌ File is empty.");
+					return;
+				}
+				
+				tableItems = line.replace("{", "").replace("}", "").split(",");
+				ArrayList<Integer> columnNumbers = new ArrayList<>();
+				String[] dataParts;
+				
+				for (int i=0; i<tableItems.length; i++) {
+					for (int j=0; j<items.size(); j++) {
+						if (tableItems[i].contains(items.get(j))) {
+							columnNumbers.add(i);
+						}
+					}
+				}
+				
+				if (columnNumbers.isEmpty()) {
+					System.out.println("Column does not exist");
+					return;
+				}
+				
+				System.out.print("📌 Table Schema: {");
+
+				for (int i=0; i<columnNumbers.size(); i++) {
+					if (i == columnNumbers.size()-1) {
+						System.out.print(tableItems[columnNumbers.get(i)] + "}\n");
+					} else {
+						System.out.print(tableItems[columnNumbers.get(i)].trim() + ", ");
+					}	
+				}
+				
+				System.out.println("📋 Table Data:");
+ 				
+				count = 0;
+				while ((line = raf.readLine()) != null) {
+				    count++;
+				    dataParts = line.split(" ");  // ✅ Split row data
+				    addSpaces = "";
+
+				    for (int i = 0; i < columnNumbers.size(); i++) { 
+				        int colIndex = columnNumbers.get(i);  // ✅ Get correct column index
+
+				        if (colIndex >= dataParts.length) {  // ✅ Prevent index error
+				            System.out.println("❌ Error: Column index " + colIndex + " out of bounds for row: " + line);
+				            break;
+				        }
+				        
+				        if (i == columnNumbers.size() - 1) {  // ✅ Last column, print new line
+				            System.out.print(dataParts[colIndex] + "\n");
+				        } else {
+				            addSpaces = dataParts[colIndex];  // ✅ Get correct column value
+
+				            // ✅ Add spacing for alignment
+				            for (int j = dataParts[colIndex].length(); j < 15; j++) { 
+				                addSpaces += " ";
+				            }
+
+				            System.out.print(addSpaces + " ");
+				        }
+				    }
+				}
+				
+				if (count == 0) {
+					System.out.println("Table is empty");
+				}
+			}
+		}
+	}
 
 }
