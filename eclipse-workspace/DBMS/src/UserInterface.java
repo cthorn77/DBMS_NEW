@@ -32,6 +32,20 @@ public class UserInterface {
 				table.writeColumnsToFile();
 				System.out.println("TABLE CREATED");
 				break;
+				
+			case "CREATE_PRIMARY":
+				command = choice.split("\\(");
+				command = command[0].split(" ");
+				
+				table = new Table(command[2]);
+				System.out.println("Primary set!");
+				
+				table = new Table(command[2]);
+				table.assignColumns(choice);
+				table.writeColumnsToFile();
+				table.writePrimaryKeyToFile(command[2]);
+				System.out.println("TABLE CREATED");
+				break;
 			
 			case "INSERT":
 				command = choice.split("\\(");
@@ -83,7 +97,7 @@ public class UserInterface {
 				    System.out.println("❌ INSERT failed due to invalid data.");
 				} else {
 				    System.out.println("✅ INSERT successful!");
-				    table.writeRecordsToFile(intoFile + ".txt", values);
+				    table.writeRecordsToFile(intoFile + ".txt", values, table);
 				    break;
 				}
 			
@@ -136,11 +150,16 @@ public class UserInterface {
 	private static String parseString(String choice) {
 	    String[] selectCommand = choice.split(" ");
 
-	    if (choice.startsWith("CREATE TABLE") && choice.endsWith(";")) {
+	    if (choice.startsWith("CREATE TABLE") && !selectCommand[4].contains("PRIMARY") && choice.endsWith(";")) {
 	        return "CREATE";
-	    } else if (choice.startsWith("INSERT INTO") && choice.contains("VALUES") && choice.endsWith(";")) {
+	    } 
+	    else if (choice.startsWith("CREATE TABLE") && selectCommand[4].contains("PRIMARY") && selectCommand[3].equals("INTEGER") && choice.endsWith(";")) {
+	    	return "CREATE_PRIMARY";
+	    }
+	    else if (choice.startsWith("INSERT INTO") && choice.contains("VALUES") && choice.endsWith(";")) {
 	        return "INSERT";
-	    } else if (choice.equals("EXIT")) {
+	    } 
+	    else if (choice.equals("EXIT")) {
 	        return "EXIT";
 	    } 
 	    // ✅ Fixing SELECT parsing
