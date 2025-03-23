@@ -9,6 +9,7 @@ public class UserInterface {
 	private Table table;
 	private String tableName;
 	private ArrayList<String> items;
+	private String condition = "";
 	
 	public UserInterface(Scanner kb) {
 		this.kb = kb;
@@ -105,6 +106,16 @@ public class UserInterface {
 				command = choice.replace(";", "").split(" ");
 				items = new ArrayList<>();
 				
+				
+				//SELECT * FROM Students WHERE Age > 16;
+				if (choice.contains("WHERE")) {
+					command = choice.split("WHERE");
+					//Age > 16
+					condition = command[1].trim().replace(";", "");
+					command = command[0].trim().split(" ");
+					
+				}
+				
 				for (String item : command) {
 					if (!item.equals("SELECT") && !items.equals("FROM")) {
 						items.add(item);
@@ -114,11 +125,19 @@ public class UserInterface {
 				tableName = items.get(items.size()-1);
 				table = new Table(tableName);
 				
-				table.selectItems(items, tableName + ".txt");
+				table.selectItems(items, tableName + ".txt", condition, table);
 				
 				break;
 			
+			//SELECT Age FROM Students WHERE [Age > 16];
+			//{SELECT Age FROM Students, Age > 16 AND Age < 21}
 			case "SELECT_MULTIPLE_FROM":
+//				condition = "";
+//				if (choice.contains("WHERE")) {
+//					command = choice.split("WHERE");
+//					condition = command[1].replace(";", "");
+//				}
+				
 				command = choice.replace(";", "").split(" ");
 				items = new ArrayList<>();
 				
@@ -133,7 +152,7 @@ public class UserInterface {
 				tableName = items.get(items.size()-1);
 				table = new Table(tableName);
 				
-				table.selectItems(items, tableName + ".txt");
+				table.selectItems(items, tableName + ".txt", condition, table);
 				
 				break;
 				
@@ -147,8 +166,11 @@ public class UserInterface {
 		}
 	}
 	
+	//SELECT * FROM Students WHERE Age > 16;
 	private static String parseString(String choice) {
 	    String[] selectCommand = choice.split(" ");
+	    String[] parts = choice.split("WHERE");
+	    String[] partsBeforeWhere = parts[0].split(" ");
 
 	    if (choice.startsWith("CREATE TABLE") && !selectCommand[4].contains("PRIMARY") && choice.endsWith(";")) {
 	        return "CREATE";
@@ -163,7 +185,7 @@ public class UserInterface {
 	        return "EXIT";
 	    } 
 	    // ✅ Fixing SELECT parsing
-	    else if (selectCommand[0].equals("SELECT") && selectCommand[2].equals("FROM") && selectCommand.length == 4 && choice.endsWith(";")) {
+	    else if (selectCommand[0].equals("SELECT") && selectCommand[2].equals("FROM") && partsBeforeWhere.length == 4 && choice.endsWith(";")) {
 	        return "SELECT_FROM";
 	    }
 	    else if (selectCommand[0].equals("SELECT") && selectCommand[1].contains(",") && selectCommand.length > 4 && choice.endsWith(";")) {
