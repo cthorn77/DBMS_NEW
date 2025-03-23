@@ -6,17 +6,13 @@ public class Table {
 	private ArrayList<String> columns;
 	private HashMap<String, String> dataType;
 	private File file;
-	private int offset;
 	private String name;
-	private boolean isPrimary;
 	
 	public Table(String name) {
 		this.name = name;
 		this.columns = new ArrayList<>();
 		this.dataType = new HashMap<>();
 		this.file = new File(this.name + ".txt");
-		this.offset = 0;
-		this.isPrimary = false;
 	}
 	
 	public void insertRecord(String text) throws IOException {
@@ -31,10 +27,6 @@ public class Table {
 		for (String part : parts) {
 			System.out.println(part);
 		}
-	}
-	
-	public void setPrimary() {
-		this.isPrimary = true;
 	}
 	
 	public void assignColumns(String text) {
@@ -380,14 +372,16 @@ public class Table {
 			return returnItems;
 		}
 	}
-	
+	//								0  1 2   3   4  5  6
 	//SELECT * FROM Students WHERE Age > 16 AND Age < 21;
 	//[Age,>,16]
 	public ArrayList<String> getItems(String[] conditionItems, String insertedString, Table table) throws FileNotFoundException, IOException {
 		String[] data;
 		String line;
+		String[] condition = new String[3];
 		ArrayList<String> returnItems = new ArrayList<>();
-		int columnNumber = 0;
+		ArrayList<String> returnItemsMultiCondition = new ArrayList<>();
+		int columnNumber = -1;
 		
 		
 		try (RandomAccessFile raf = new RandomAccessFile(insertedString, "rw")) {
@@ -401,7 +395,7 @@ public class Table {
 				}
 			}
 			
-			if (columnNumber == 0) {
+			if (columnNumber == -1) {
 				System.out.println("Column does not exist");
 				return new ArrayList<>();
 			}
@@ -412,6 +406,48 @@ public class Table {
 					returnItems.add(line);
 				}
 			}
+			
+			if (conditionItems.length > 2) {
+				raf.seek(0);
+				line = raf.readLine();
+				data = line.replace("{", "").replace("}", "").split(", ");
+				
+				for (int i=0; i<data.length; i++) {
+					if (data[i].contains(conditionItems[4])) {
+						columnNumber = i;
+					}
+				}
+				
+				if (columnNumber == -1) {
+					System.out.println("Column does not exist");
+					return new ArrayList<>();
+				}
+				
+				condition[0] = conditionItems[4]; 
+				condition[1] = conditionItems[5]; 
+				condition[2] = conditionItems[6]; 
+				
+				for (int i=0; i<returnItems.size(); i++) {
+					data = returnItems.get(i).split(" ");
+					line = returnItems.get(i);
+					if (table.evaluateExpression(condition, data[columnNumber])) {
+						if (conditionItems[3].equals("AND")) {
+							if (returnItems.contains(line)) {
+								returnItemsMultiCondition.add(line);
+							}
+						} else {
+							if (!returnItems.contains(line)) {
+								returnItems.add(line);
+							}
+						}
+					}
+				}
+			}
+			
+			if (!returnItemsMultiCondition.isEmpty()) {
+				return returnItemsMultiCondition;
+			}
+			
 			return returnItems;
 		}
 	}

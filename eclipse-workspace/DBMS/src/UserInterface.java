@@ -129,17 +129,21 @@ public class UserInterface {
 				
 				break;
 			
-			//SELECT Age FROM Students WHERE [Age > 16];
-			//{SELECT Age FROM Students, Age > 16 AND Age < 21}
+			//SELECT Age, Name FROM Students;
+			//SELECT Age, Name FROM Students WHERE Age > 16;
 			case "SELECT_MULTIPLE_FROM":
-//				condition = "";
-//				if (choice.contains("WHERE")) {
-//					command = choice.split("WHERE");
-//					condition = command[1].replace(";", "");
-//				}
 				
 				command = choice.replace(";", "").split(" ");
 				items = new ArrayList<>();
+				
+				//SELECT * FROM Students WHERE Age > 16;
+				if (choice.contains("WHERE")) {
+					command = choice.split("WHERE");
+					//Age > 16
+					condition = command[1].trim().replace(";", "");
+					command = command[0].trim().split(" ");
+					
+				}
 				
 				for (int i=1; i<command.length; i++) {
 					if (!command[i].trim().equals("FROM")) {
