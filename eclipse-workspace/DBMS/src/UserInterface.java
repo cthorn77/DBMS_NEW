@@ -103,6 +103,7 @@ public class UserInterface {
 				}
 			
 			case "SELECT_FROM":
+				condition = "";
 				command = choice.replace(";", "").split(" ");
 				items = new ArrayList<>();
 				

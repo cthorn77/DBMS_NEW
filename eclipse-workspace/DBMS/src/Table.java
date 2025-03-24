@@ -407,7 +407,7 @@ public class Table {
 				}
 			}
 			
-			if (conditionItems.length > 2) {
+			if (conditionItems.length > 3) {
 				raf.seek(0);
 				line = raf.readLine();
 				data = line.replace("{", "").replace("}", "").split(", ");
