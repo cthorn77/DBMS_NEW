@@ -218,6 +218,39 @@ public class UserInterface {
 				
 				break;
 				
+			case "DELETE":
+				if (inUse.equals("")) {
+					System.out.println("Must select a database");
+				} else {
+					command = choice.replace(";", "").split(" ");
+					
+					if (choice.contains("WHERE")) {
+						command = choice.split("WHERE");
+						condition = command[1].trim().replace(";", "");
+						command = command[0].trim().split(" ");
+						
+					}
+					
+					table = new Table(command[1], inUse);
+					table.deleteRecord(command[1] + ".txt", condition, table);
+				}
+				
+				break;
+				
+			case "RENAME":
+				if (inUse.equals("")) {
+					System.out.println("Must select a database");
+				} else {
+					command = choice.replace(";", "").replace(")", "").split("\\(");
+					tableName = command[0].split(" ")[1];
+					command = command[1].split(",");
+					
+					table = new Table(tableName, inUse);
+					table.renameAttributes(tableName + ".txt", command);
+				}
+				
+				break;
+				
 			case "EXIT":
 				run = false;
 				break;
@@ -261,6 +294,12 @@ public class UserInterface {
 	    }
 	    else if (selectCommand[0].equals("DESCRIBE") && selectCommand.length == 2 && choice.endsWith(";")) {
 	    	return "DESCRIBE";
+	    }
+	    else if (selectCommand[0].equals("DELETE") && selectCommand.length > 1 && choice.endsWith(";")) {
+	    	return "DELETE";
+	    }
+	    else if (selectCommand[0].equals("RENAME") && choice.endsWith(";")) {
+	    	return "RENAME";
 	    }
 
 	    return "invalid";

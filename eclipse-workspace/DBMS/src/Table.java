@@ -466,28 +466,35 @@ public class Table {
 	}
 	
 	public boolean evaluateExpression(String[] conditionItems, String comparisonItem) {
-		switch (conditionItems[1]) {
-		case ">":
-			return Double.parseDouble(comparisonItem) > Double.parseDouble(conditionItems[2]);
+		
+		try {
+			switch (conditionItems[1]) {
+			case ">":
+				return Double.parseDouble(comparisonItem) > Double.parseDouble(conditionItems[2]);
+				
+			case "<":
+				return Double.parseDouble(comparisonItem) < Double.parseDouble(conditionItems[2]);
+				
+			case ">=":
+				return Double.parseDouble(comparisonItem) >= Double.parseDouble(conditionItems[2]);
+				
+			case "<=":
+				return Double.parseDouble(comparisonItem) <= Double.parseDouble(conditionItems[2]);
+				
+			case "=":
+				return Double.parseDouble(comparisonItem) == Double.parseDouble(conditionItems[2]);
+				
+			case "!=":
+				return Double.parseDouble(comparisonItem) != Double.parseDouble(conditionItems[2]);
+				
+			default:
+				return false;
+			}
+		} catch (Exception e) {
+			return comparisonItem.equals(conditionItems[2]);
 			
-		case "<":
-			return Double.parseDouble(comparisonItem) < Double.parseDouble(conditionItems[2]);
-			
-		case ">=":
-			return Double.parseDouble(comparisonItem) >= Double.parseDouble(conditionItems[2]);
-			
-		case "<=":
-			return Double.parseDouble(comparisonItem) <= Double.parseDouble(conditionItems[2]);
-			
-		case "=":
-			return Double.parseDouble(comparisonItem) == Double.parseDouble(conditionItems[2]);
-			
-		case "!=":
-			return Double.parseDouble(comparisonItem) != Double.parseDouble(conditionItems[2]);
-			
-		default:
-			return false;
 		}
+
 	}
 
 	
@@ -589,6 +596,110 @@ public class Table {
 					}
 				}
 				System.out.println(addSpaces);
+			}
+		}
+	}
+	
+	//  DELETE TableName WHERE Age > 16 AND Year = 2005;
+	public void deleteRecord(String insertedString, String condition, Table table) throws FileNotFoundException, IOException {
+		String[] conditionItems = condition.split(" ");
+		ArrayList<String> getItems = new ArrayList<>(); 
+		ArrayList<String> records = new ArrayList<>();
+		File file = new File(path + insertedString);
+		Boolean contains = false;
+		String line;
+		
+		if (!file.exists()) {
+			System.out.println("File does not exist");
+			return;
+		}
+		
+		if (!condition.equals("")) {
+			for (int i = 0; i < conditionItems.length; i++) {
+			    conditionItems[i] = conditionItems[i].trim();
+			}
+			getItems = table.getItems(conditionItems, path + insertedString, table);
+			
+			if (getItems.isEmpty()) {
+				System.out.println("No records match the condition");
+				return;
+			}
+			
+			try (RandomAccessFile raf = new RandomAccessFile(path + insertedString, "rw")) {
+				raf.seek(0);
+				
+				while ((line = raf.readLine()) != null) {
+					records.add(line);
+				}
+				
+				raf.setLength(0);
+				raf.seek(0);
+				
+				//  Dog, Cat, Bird, Lion, Wolf
+				//  Cat, Lion
+				
+				for (int i=0; i<records.size(); i++) {
+					for (int j=0; j<getItems.size(); j++) {
+						if (getItems.get(j).equals(records.get(i))) {
+							contains = true;
+						}
+					}
+					if (!contains) {
+						raf.writeBytes(records.get(i) + System.lineSeparator());
+					}
+					contains = false;
+				}
+			}
+		} else {
+			try (RandomAccessFile raf = new RandomAccessFile(path + insertedString, "rw")) {
+				raf.setLength(0);
+			}
+		}
+	}
+	
+	//  RENAME TableName(one,two,three);
+	public void renameAttributes(String insertedString, String[] attributes) throws FileNotFoundException, IOException {
+		ArrayList<String> records = new ArrayList<>();
+		File file = new File(path + insertedString);
+		String line;
+		String[] attributeParts;
+		String[] parts;
+		
+		if (!file.exists()) {
+			System.out.println("File does not exist");
+			return;
+		}
+		
+		try (RandomAccessFile raf = new RandomAccessFile(path + insertedString, "rw")) {
+			while ((line = raf.readLine()) != null) {
+				records.add(line);
+			}
+			
+			raf.setLength(0);
+			raf.seek(0);
+			
+			// {ID=INTEGER, Name=TEXT, GPA=FLOAT}
+			
+			attributeParts = records.get(0).replace("{", "").replace("}", "").trim().split(", ");
+			raf.writeBytes("{");
+			
+			if (attributes.length != attributeParts.length) {
+				System.out.println("Invalid attribute count");
+				return;
+			}
+
+			for (int j=0; j<attributeParts.length; j++) {
+				parts = attributeParts[j].split("=");
+				if (j == attributeParts.length-1) {
+					raf.writeBytes(attributes[j] + "=" + parts[1] + "}" + System.lineSeparator());
+				} else {
+					raf.writeBytes(attributes[j] + "=" + parts[1] + ", ");
+				}
+			}
+			
+			
+			for (int i=1; i<records.size(); i++) {
+				raf.writeBytes(records.get(i) + System.lineSeparator());
 			}
 		}
 	}
