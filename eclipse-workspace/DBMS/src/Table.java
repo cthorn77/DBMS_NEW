@@ -394,6 +394,7 @@ public class Table {
 		String[] condition = new String[3];
 		ArrayList<String> returnItems = new ArrayList<>();
 		ArrayList<String> returnItemsMultiCondition = new ArrayList<>();
+		ArrayList<String> records = new ArrayList<>();
 		int columnNumber = -1;
 		
 		
@@ -414,6 +415,7 @@ public class Table {
 			}
 			
 			while ((line = raf.readLine()) != null) {
+				records.add(line);
 				data = line.split(" ");
 				if (table.evaluateExpression(conditionItems, data[columnNumber])) {
 					returnItems.add(line);
@@ -440,21 +442,35 @@ public class Table {
 				condition[1] = conditionItems[5]; 
 				condition[2] = conditionItems[6]; 
 				
-				for (int i=0; i<returnItems.size(); i++) {
-					data = returnItems.get(i).split(" ");
-					line = returnItems.get(i);
-					if (table.evaluateExpression(condition, data[columnNumber])) {
-						if (conditionItems[3].equals("AND")) {
-							if (returnItems.contains(line)) {
-								returnItemsMultiCondition.add(line);
+				
+				if (conditionItems[3].equals("AND")) {
+					for (int i=0; i<returnItems.size(); i++) {
+						data = returnItems.get(i).split(" ");
+						line = returnItems.get(i);
+						if (table.evaluateExpression(condition, data[columnNumber])) {
+							if (conditionItems[3].equals("AND")) {
+								if (returnItems.contains(line)) {
+									returnItemsMultiCondition.add(line);
+								}
+							} else {
+								if (!returnItems.contains(line)) {
+									returnItems.add(line);
+								}
 							}
-						} else {
+						}
+					}
+				} else {
+					for (int i=0; i<records.size(); i++) {
+						data = records.get(i).split(" ");
+						line = records.get(i);
+						if (table.evaluateExpression(condition, data[columnNumber])) {
 							if (!returnItems.contains(line)) {
 								returnItems.add(line);
 							}
 						}
 					}
 				}
+
 			}
 			
 			if (!returnItemsMultiCondition.isEmpty()) {
@@ -500,10 +516,19 @@ public class Table {
 	
 	public void writePrimaryKeyToFile(String insertedString) throws FileNotFoundException, IOException {
 		File file = new File("PrimaryKeys.txt");
+		ArrayList<String> records = new ArrayList<>();
+		String line;
 		
 		try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+			raf.seek(0);
+			while ((line = raf.readLine()) != null) {
+				records.add(line);
+			}
+			
 			raf.seek(raf.length());
-			raf.writeBytes(insertedString + ".txt" + System.lineSeparator()); 
+			if (!records.contains((insertedString + ".txt" + System.lineSeparator()))) {
+				raf.writeBytes(insertedString + ".txt" + System.lineSeparator()); 
+			}
 		}
 	}
 	
@@ -527,7 +552,7 @@ public class Table {
 	
 	public void describeTables(String tableName, Table table) throws FileNotFoundException, IOException {
 		File folder = new File(path.replace("/", ""));
-		File[] files = folder.listFiles();
+		File[] files = folder.listFiles((dir, name) -> name.endsWith(".txt") && !name.equals("All.txt"));
 		String[] items;
 		String[] itemParts;
 		String check = "";
@@ -653,6 +678,8 @@ public class Table {
 		} else {
 			try (RandomAccessFile raf = new RandomAccessFile(path + insertedString, "rw")) {
 				raf.setLength(0);
+				raf.close();
+				file.delete();
 			}
 		}
 	}
@@ -703,5 +730,432 @@ public class Table {
 			}
 		}
 	}
+	
+//	UPDATE TableName SET AttrName = Constant [,AttrName = Constant] * [WHERE Condition] ‘;’
+//  UPDATE Students SET Name = Marshall WHERE Name = Charlie; 
+//  TableName, [AttrName,Constant,Condition];
+	
+	public void updateTable(String insertedString, String[] data, Table table) throws FileNotFoundException, IOException {
+		String attrName = data[0];
+		String constant = data[1];
+		String condition = data[2];
+		String[] conditionItems = condition.split(" ");
+		String[] dataTypes;
+		int columnNumber = -1;
+		String line;
+		ArrayList<String> records = new ArrayList<>();
+		ArrayList<String> getItems = new ArrayList<>();
+		File file = new File(path + insertedString);
+		 
+		if (!file.exists()) {
+			System.out.println("Field does not exist");
+			return;
+		}
+		
+		try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+			while ((line = raf.readLine()) != null) {
+				records.add(line);
+			}
+			
+			getItems = table.getItems(conditionItems, path + insertedString, table);
+			dataTypes = records.get(0).replace("}", "").replace("{", "").split(", ");
+			
+			for (int i=0; i<dataTypes.length; i++) {
+				if (dataTypes[i].contains(attrName)) {
+					columnNumber = i;
+					
+					if (dataTypes[i].trim().contains("INTEGER")) {
+			            if (!constant.matches("^-?\\d+$")) {
+			                System.out.println("❌ Invalid INTEGER: " + constant);
+			                return;
+			            }
+			        } else if (dataTypes[i].trim().contains("FLOAT")) {
+			            if (!constant.matches("^-?\\d+(\\.\\d+)?$")) {
+			                System.out.println("❌ Invalid FLOAT: " + constant);
+			                return;
+			            }
+			        } else if (dataTypes[i].trim().contains("TEXT")) {
+			            if (constant.matches("^\\d+$")) {
+			                System.out.println("❌ Invalid TEXT: " + constant);
+			                return;
+			            }
+			        } else {
+			            System.out.println("❌ Unknown data type: " + dataTypes[i]);
+			            return;
+			        }
+				}
+			}
+			
+			if (columnNumber == -1) {
+				System.out.println("Column does not exist");
+				return;
+			}
+			
+			String check = table.checkIsPrimary(path + insertedString.replace(".txt", ""));
+			
+			if (check.equals("isPrimary") && columnNumber == 0) {
+				System.out.println("Not allowed to update primary key values");
+				return;
+			}
+			
+			//{Name=TEXT, Age=INTEGER}
+			
+			raf.setLength(0);
+			raf.seek(0);
+			
+			for (int i=0; i<records.size(); i++) {
+				if (!getItems.contains(records.get(i))) {
+					raf.writeBytes(records.get(i) + System.lineSeparator());
+				} else {
+					String[] recordParts = records.get(i).split(" ");
+					recordParts[columnNumber] = constant;
+					line = "";
+					for (int j=0; j<recordParts.length; j++) {
+						if (j==recordParts.length-1) {
+							line += recordParts[j];
+						} else {
+							line += recordParts[j] + " ";
+						}
+					}
+					raf.writeBytes(line + System.lineSeparator());
+				}
+			}
+			
+		}
+	}
+	
+	public ArrayList<String> selectForLet(ArrayList<String> items, String insertedString, String condition, Table table, BinarySearchTree bst) throws IOException {
+		File insertedFile = new File(insertedString);
+		ArrayList<String> returnItems = new ArrayList<>(); 
+		ArrayList<String> getItems = new ArrayList<>();
+		ArrayList<String> selectItems = new ArrayList<>();
+		String[] conditionItems = condition.split(" ");
+		
+		for (int i = 0; i < conditionItems.length; i++) {
+		    conditionItems[i] = conditionItems[i].trim();
+		}
+		
+		if (!insertedFile.exists()) {
+			System.out.println("❌ File not found: " + insertedString);
+			return new ArrayList<String>();
+		}
+		
+		try (RandomAccessFile raf = new RandomAccessFile(insertedFile, "rw")) {
+			String line;
+			int count;
+			String[] parts;
+			String addSpaces = "";
+			String tableName = insertedString.replace(".txt", "");
+			String check = table.checkIsPrimary(tableName);
+			
+			
+			
+			if (items.isEmpty()) {
+				System.out.println("No columns selected");
+				return new ArrayList<String>();
+			}
+			
+			else {
+				if (items.get(0).equals("*")) {
+					raf.seek(0);
+					line = raf.readLine();
+					
+					if (line == null) {
+						System.out.println("❌ File is empty.");
+						return new ArrayList<String>();
+					}
+					
+//					System.out.println("📌 Table Schema: " + line);
+//					System.out.println("📋 Table Data:");
+					
+					selectItems.add(line + System.lineSeparator());
+					
+					if (!condition.equals("")) {
+						getItems = table.getItems(conditionItems, insertedString, table);
+						
+						if (getItems.isEmpty()) {
+							System.out.println("No records match the condition");
+							return new ArrayList<>();
+						}
+						
+						for (int i=0; i<getItems.size(); i++) {
+							parts = getItems.get(i).split(" ");
+							addSpaces = "";
+							for (int j=0; j<parts.length; j++) {
+								addSpaces += parts[j];
+								for (int k=parts[j].length(); k<15; k++) {
+									addSpaces += " ";
+								}
+							}
+//							System.out.println(addSpaces);
+							selectItems.add(addSpaces + System.lineSeparator());
+						}
+						return selectItems;
+					}
+					
+					else {
+						count=0;
+						while ((line=raf.readLine()) != null) {
+							count++;
+							parts = line.split(" ");
+							addSpaces = "";
+							for (int i=0; i<parts.length; i++) {
+								addSpaces += parts[i];
+								for (int j=parts[i].length(); j<15; j++) {
+									addSpaces += " ";
+								}
+							}
+//							System.out.println(addSpaces);
+							selectItems.add(addSpaces + System.lineSeparator());
+						}
+						
+						if (count == 0) {
+							System.out.println("Table is empty");
+						}
+						
+						return new ArrayList<String>();	
+					}
+					
+				} else {
+					String[] tableItems;
+					raf.seek(0);
+					line = raf.readLine();
+					returnItems = new ArrayList<>();
+					
+					if (line == null) {
+						System.out.println("❌ File is empty.");
+						return new ArrayList<String>();
+					}
+					
+					tableItems = line.replace("{", "").replace("}", "").split(",");
+					ArrayList<Integer> columnNumbers = new ArrayList<>();
+					String[] dataParts;
+					
+					for (int i=0; i<tableItems.length; i++) {
+						String columnName = tableItems[i].split("=")[0].trim();
+						for (int j=0; j<items.size(); j++) {
+//							System.out.println("Comparing: '" + columnName + "' with '" + items.get(j).trim() + "'");
+							if (columnName.equals(items.get(j).trim())) {
+								columnNumbers.add(i);
+							}
+						}
+					}
+					
+					if (columnNumbers.isEmpty()) {
+						System.out.println("Column does not exist");
+						return new ArrayList<String>();
+					}
+					
+//					System.out.print("📌 Table Schema: {");
+					String schemaLine = "";
 
+					for (int i=0; i<columnNumbers.size(); i++) {
+						if (i == columnNumbers.size()-1) {
+//							System.out.print(tableItems[columnNumbers.get(i)].trim() + "}\n");
+							schemaLine += tableItems[columnNumbers.get(i)].trim() + "}\n";
+						} else {
+//							System.out.print(tableItems[columnNumbers.get(i)].trim() + ", ");
+							schemaLine += tableItems[columnNumbers.get(i)].trim() + ", ";
+						}	
+					}
+					
+					selectItems.add(schemaLine + System.lineSeparator());
+					
+//					System.out.println("📋 Table Data:");
+					count = 0;
+	 				
+					if (!condition.equals("")) {
+						getItems = table.getItems(conditionItems, insertedString, table);
+						
+						if (getItems.isEmpty()) {
+							System.out.println("No records match the condition");
+							return new ArrayList<>();
+						}
+						
+						for (int initial=0; initial<getItems.size(); initial++) {
+							dataParts = getItems.get(initial).split(" ");
+							addSpaces = "";
+							
+							for (int i = 0; i < columnNumbers.size(); i++) { 
+						        int colIndex = columnNumbers.get(i);  // ✅ Get correct column index
+
+						        if (colIndex >= dataParts.length) {  // ✅ Prevent index error
+						            System.out.println("❌ Error: Column index " + colIndex + " out of bounds for row: " + line);
+						            break;
+						        }
+						        
+						        if (i == columnNumbers.size() - 1) {  // ✅ Last column, print new line
+//						            System.out.print(dataParts[colIndex] + "\n");
+						            returnItems.add(dataParts[colIndex]);
+						        } else {
+						            addSpaces = dataParts[colIndex];  // ✅ Get correct column value 
+						            returnItems.add(dataParts[colIndex]);
+						            // ✅ Add spacing for alignment
+						            for (int j = dataParts[colIndex].length(); j < 15; j++) { 
+						                addSpaces += " ";
+						            }
+
+//						            System.out.print(addSpaces + " ");
+						        }
+						    }
+						}
+					}
+					
+					else {
+						while ((line = raf.readLine()) != null) {
+						    count++;
+						    dataParts = line.split(" ");  // ✅ Split row data
+						    addSpaces = "";
+
+						    for (int i = 0; i < columnNumbers.size(); i++) { 
+						        int colIndex = columnNumbers.get(i);  // ✅ Get correct column index
+
+						        if (colIndex >= dataParts.length) {  // ✅ Prevent index error
+						            System.out.println("❌ Error: Column index " + colIndex + " out of bounds for row: " + line);
+						            break;
+						        }
+						        
+						        if (i == columnNumbers.size() - 1) {  // ✅ Last column, print new line
+//						            System.out.print(dataParts[colIndex] + "\n");
+						            returnItems.add(dataParts[colIndex]);
+						        } else {
+						            addSpaces = dataParts[colIndex];  // ✅ Get correct column value 
+						            returnItems.add(dataParts[colIndex]);
+						            // ✅ Add spacing for alignment
+						            for (int j = dataParts[colIndex].length(); j < 15; j++) { 
+						                addSpaces += " ";
+						            }
+
+//						            System.out.print(addSpaces + " ");
+						        }
+						    }
+						}
+						
+						if (count == 0) {
+							System.out.println("Table is empty");
+						}
+					}
+					
+					for (String item : returnItems) {
+						selectItems.add(item + System.lineSeparator());
+					}
+					return selectItems;
+				}
+			}
+			
+			
+		}
+	}
+	
+	public void letFunction(ArrayList<String> items, String insertedString, String condition, Table table, BinarySearchTree bst, ArrayList<String> nameID) throws FileNotFoundException, IOException {
+		File testFile = new File(path + nameID.get(0) + ".txt");
+		ArrayList<String> selectItems = table.selectForLet(items, insertedString, condition, table, bst);
+		ArrayList<String> holdItems = new ArrayList<>();
+		String[] parts;
+		String line = "";
+		int columnNumber = -1;
+		int count;
+		int iPlaceholder;
+		
+		holdItems.add(selectItems.get(0).trim());
+		
+		if ((count = selectItems.get(0).split(", ").length) > 1) {
+			for (int i=1; i<selectItems.size(); i=i+count) {
+				line = "";
+				iPlaceholder = i;
+				for (int j=0; j<count; j++) {
+					if (j == count-1) {
+						line += selectItems.get(iPlaceholder).trim().replace("\\s+", "");
+						iPlaceholder++;
+						holdItems.add(line);
+					} else {
+						line += selectItems.get(iPlaceholder).trim().replace("\\s+", "") + " ";
+						iPlaceholder++;
+					}
+				}
+			}
+			selectItems = new ArrayList<>(holdItems);
+		}
+		
+		try (RandomAccessFile raf = new RandomAccessFile(testFile, "rw")) {
+			
+			parts = selectItems.get(0).trim().split(", ");
+			
+			for (int i=0; i<parts.length; i++) {
+				if (parts[i].contains(nameID.get(1))) {
+					if (!parts[i].trim().contains("INTEGER")) {
+						System.out.println("Key must be of value INTEGER");
+			            return;
+			        } 
+				}
+			}
+			
+			if (!items.contains(nameID.get(1)) && !items.contains("*")) {
+				System.out.println("Key must be in the table");
+				return;
+			}
+			
+			raf.setLength(0); 
+			raf.seek(0);
+			
+			for (int i=0; i<selectItems.size(); i++) {
+				line = selectItems.get(i).trim().replaceAll("\\s+", " ");
+				parts = line.split(" ");
+				if (i==0) {
+					for (int j=0; j<parts.length; j++) {
+						if (parts[j].contains(nameID.get(1))) {
+							columnNumber = j;
+						}
+					}
+					if (columnNumber == -1) {
+						System.out.println("Key doesn't exist in table");
+						return;
+					}
+					
+					
+					parts = selectItems.get(i).replaceAll("\\s+", " ").replace("{", "").replace("}", "").trim().split(", ");
+					line = parts[columnNumber];
+					
+					raf.writeBytes("{" + line);
+					
+					for (int j=0; j<parts.length; j++) {
+						if (!(j==columnNumber)) {
+							raf.writeBytes(", " + parts[j]);
+						}
+					}
+					raf.writeBytes("}" + System.lineSeparator());
+					continue;
+				}
+				
+				line = parts[columnNumber];
+				
+				raf.writeBytes(line);
+				
+				for (int j=0; j<parts.length; j++) {
+					if (!(j==columnNumber)) {
+						raf.writeBytes(" " + parts[j]);
+					}
+				}
+				
+				raf.writeBytes(System.lineSeparator());
+			}
+			
+//			int count = -1;
+//			for (String select : selectItems) {
+//				if (count==-0 && !select.contains(nameID.get(1))) {
+//					System.out.println("Key must be in the first column of the table");
+//					return;
+//				}
+//				if (count==-1) {
+//					raf.writeBytes("{" + select.trim().replaceAll("\\s+", " ").replace("{", "").replace("}", "") + "}" + System.lineSeparator());
+//					continue;
+//				}
+//				line = select.trim().replaceAll("\\s+", " ");
+//				raf.writeBytes(select.trim().replaceAll("\\s+", " ") + System.lineSeparator());
+//				count++;
+//			}
+			
+			table.writePrimaryKeyToFile(path + nameID.get(0).replace(".txt", ""));
+		}
+	}
 }
