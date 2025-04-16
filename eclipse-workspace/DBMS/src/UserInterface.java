@@ -11,6 +11,7 @@ public class UserInterface {
 	private String[] command;
 	private Table table;
 	private Database db;
+	private DBMS dbms;
 	private String inUse;
 	private String tableName;
 	private File file;
@@ -20,6 +21,7 @@ public class UserInterface {
 	public UserInterface(Scanner kb) {
 		this.kb = kb;
 		this.inUse = "";
+		this.dbms = new DBMS(inUse);
 	}
 	
 	@SuppressWarnings("unlikely-arg-type")
@@ -29,7 +31,7 @@ public class UserInterface {
 		
 		while (run) {
 			String choice = kb.nextLine();
-			switch(parseString(choice)) {
+			switch(parseString(choice, inUse)) {
 			case "CREATE_DATABASE":
 				command = choice.replace(";", "").split(" ");
 				db = new Database(command[2]);
@@ -353,6 +355,39 @@ public class UserInterface {
 				
 				break;
 				
+				
+		    case "MULTI_TABLE_SELECT":
+		    	if (inUse.equals("")) {
+					System.out.println("Must select a database");
+				} else {
+					command = choice.replace(";", "").split(" ");
+					items = new ArrayList<>();
+					
+					//SELECT * FROM Students WHERE Age > 16;
+					if (choice.contains("WHERE")) {
+						command = choice.split("WHERE");
+						//Age > 16
+						condition = command[1].trim().replace(";", "");
+						command = command[0].trim().split(" ");
+						
+					}
+					
+					for (int i=1; i<command.length; i++) {
+						if (!command[i].trim().equals("FROM")) {
+							items.add(command[i].replace(",", "").trim());
+						} else {
+							continue;
+						}
+					}
+					
+					tableName = items.get(items.size()-1);
+					table = new Table(tableName, inUse);
+					
+					table.selectMultipleTables(items, condition, table);
+				}
+		    	
+		    	break;
+				
 			case "EXIT":
 				run = false;
 				break;
@@ -364,7 +399,7 @@ public class UserInterface {
 	}
 	
 	//SELECT * FROM Students WHERE Age > 16;
-	private static String parseString(String choice) {
+	private static String parseString(String choice, String path) throws IOException {
 	    String[] selectCommand = choice.split(" ");
 	    String[] parts = choice.split("WHERE");
 	    String[] partsBeforeWhere = parts[0].split(" ");
@@ -372,7 +407,7 @@ public class UserInterface {
 	    if (choice.startsWith("CREATE DATABASE") && selectCommand.length == 3 && choice.endsWith(";")){
 	    	return "CREATE_DATABASE";
 	    }
-	    else if (choice.startsWith("CREATE TABLE") && !selectCommand[4].contains("PRIMARY") && choice.endsWith(";")) {
+	    else if (choice.startsWith("CREATE TABLE") && (selectCommand.length <= 4 || !selectCommand[4].contains("PRIMARY")) && choice.endsWith(";")) {
 	        return "CREATE";
 	    } 
 	    else if (choice.startsWith("CREATE TABLE") && selectCommand[4].contains("PRIMARY") && selectCommand[3].equals("INTEGER") && choice.endsWith(";")) {
@@ -385,10 +420,10 @@ public class UserInterface {
 	        return "EXIT";
 	    } 
 	    // ✅ Fixing SELECT parsing
-	    else if (selectCommand[0].equals("SELECT") && selectCommand[2].equals("FROM") && partsBeforeWhere.length == 4 && choice.endsWith(";")) {
+	    else if (selectCommand[0].equals("SELECT") && selectCommand[2].equals("FROM") && !selectCommand[1].contains(".")  && partsBeforeWhere.length == 4 && choice.endsWith(";")) {
 	        return "SELECT_FROM";
 	    }
-	    else if (selectCommand[0].equals("SELECT") && selectCommand[1].contains(",") && selectCommand.length > 4 && choice.endsWith(";")) {
+	    else if (selectCommand[0].equals("SELECT") && selectCommand[1].contains(",") && !selectCommand[1].contains(".") && selectCommand.length > 4 && choice.endsWith(";")) {
 	    	return "SELECT_MULTIPLE_FROM";
 	    }
 	    else if (selectCommand[0].equals("USE") && selectCommand.length == 2 && choice.endsWith(";")) {
@@ -402,7 +437,7 @@ public class UserInterface {
 	    }
 	    else if (selectCommand[0].equals("RENAME") && choice.endsWith(";")) {
 	    	return "RENAME";
-	    }
+	    } 
 	    else if (selectCommand[0].equals("UPDATE") && selectCommand[2].equals("SET") && choice.contains("WHERE") && choice.endsWith(";")) {
 	    	return "UPDATE";
 	    }
@@ -413,12 +448,16 @@ public class UserInterface {
 	    else if (selectCommand[0].equals("INPUT") && choice.endsWith(";")) {
 	    	return "INPUT";
 	    }
+	    else if (choice.trim().startsWith("SELECT") && choice.contains("FROM") && choice.contains(".") && choice.contains("WHERE")) {
+	    	return "MULTI_TABLE_SELECT";
+	    }
+
 //	    	UPDATE TableName SET AttrName = Constant [,AttrName = Constant] * [WHERE Condition] ‘;’
 	    return "invalid";
 	}
 	
 		public void runInput(String choice) throws IOException {
-			switch(parseString(choice)) {
+			switch(parseString(choice, inUse)) {
 			case "CREATE_DATABASE":
 				command = choice.replace(";", "").split(" ");
 				db = new Database(command[2]);
@@ -720,7 +759,7 @@ public class UserInterface {
 					if (command.length == 2) {
 						try (RandomAccessFile raf = new RandomAccessFile(command[1] + ".txt", "rw")) {
 							while ((line = raf.readLine()) != null) {
-								UserInterface.parseString(line);
+								UserInterface.parseString(line, inUse);
 							}
 							}
 					} else {
@@ -737,7 +776,7 @@ public class UserInterface {
 							System.setOut(new PrintStream(file));
 							
 							while ((line = raf.readLine()) != null) {
-								UserInterface.parseString(line);
+								UserInterface.parseString(line, inUse);
 								
 							}
 							
@@ -747,6 +786,38 @@ public class UserInterface {
 				}
 				
 				break;
+				
+			case "MULTI_TABLE_SELECT":
+		    	if (inUse.equals("")) {
+					System.out.println("Must select a database");
+				} else {
+					command = choice.replace(";", "").split(" ");
+					items = new ArrayList<>();
+					
+					//SELECT * FROM Students WHERE Age > 16;
+					if (choice.contains("WHERE")) {
+						command = choice.split("WHERE");
+						//Age > 16
+						condition = command[1].trim().replace(";", "");
+						command = command[0].trim().split(" ");
+						
+					}
+					
+					for (int i=1; i<command.length; i++) {
+						if (!command[i].trim().equals("FROM")) {
+							items.add(command[i].replace(",", "").trim());
+						} else {
+							continue;
+						}
+					}
+					
+					tableName = items.get(items.size()-1);
+					table = new Table(tableName, inUse);
+					
+					table.selectMultipleTables(items, condition, table);
+				}
+		    	
+		    	break;
 	
 			default:
 				System.out.println("Error: Please enter a proper command.");
