@@ -7,8 +7,6 @@ public class Table {
 	private HashMap<String, String> dataType;
 	private File file;
 	private String name;
-	private BinarySearchTree bst;
-	private boolean hasPrimaryKey;
 	
 	public Table(String name) {
 		this.name = name;
@@ -81,33 +79,23 @@ public class Table {
 			String result = table.checkIsPrimary(table.getName());
 			
 			
-//			if (result.equals("isPrimary")) {
-//				ArrayList<String> primaryValues;
-//				ArrayList<String> insertedValues = new ArrayList<>();
-//				
-//				for (String value : values) {
-//					insertedValues.add(value);
-//				}
-//				
-//				primaryValues = table.selectInsert(insertedValues, insertedString);
-//				
-//				for (String value : primaryValues) {
-//					if (value.equals(values[0])) {
-//						System.out.println("Another record contains this primary key already");
-//						return;
-//					}
-//				}
-//				
-//			}
-			
 			if (result.equals("isPrimary")) {
-				int primaryKey = Integer.parseInt(values[0]);
-				if (table.bst.search(primaryKey) != -1) {
-					System.out.println("Duplicate Primary Key: " + primaryKey);
-					return;
+				ArrayList<String> primaryValues;
+				ArrayList<String> insertedValues = new ArrayList<>();
+				
+				for (String value : values) {
+					insertedValues.add(value);
 				}
-				long offset = raf.getFilePointer();
-				table.bst.insert(primaryKey, offset);
+				
+				primaryValues = table.selectInsert(insertedValues, insertedString);
+				
+				for (String value : primaryValues) {
+					if (value.equals(values[0])) {
+						System.out.println("Another record contains this primary key already");
+						return;
+					}
+				}
+				
 			}
 			
 			for (String value : values) {
