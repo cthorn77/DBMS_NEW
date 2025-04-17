@@ -453,7 +453,7 @@ public class UserInterface {
 	    else if (selectCommand[0].equals("UPDATE") && selectCommand[2].equals("SET") && choice.contains("WHERE") && choice.endsWith(";")) {
 	    	return "UPDATE";
 	    }
-	    else if (selectCommand[0].equals("LET") && selectCommand[2].equals("KEY") && choice.contains("SELECT") && choice.contains("WHERE") && choice.endsWith(";")) {
+	    else if (selectCommand[0].equals("LET") && choice.contains("SELECT") && choice.contains("WHERE") && choice.endsWith(";")) {
 	    	return "LET";
 	    }
 	    //INPUT FileName1 [OUTPUT FileName2];

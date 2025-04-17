@@ -1056,6 +1056,7 @@ public class Table {
 	}
 	
 	public void letFunction(ArrayList<String> items, String insertedString, String condition, Table table, BinarySearchTree bst, ArrayList<String> nameID) throws FileNotFoundException, IOException {
+
 		File testFile = new File(path + nameID.get(0) + ".txt");
 		ArrayList<String> selectItems = table.selectForLet(items, insertedString, condition, table, bst);
 		ArrayList<String> holdItems = new ArrayList<>();
@@ -1067,105 +1068,139 @@ public class Table {
 		
 		holdItems.add(selectItems.get(0).trim());
 		
-		if ((count = selectItems.get(0).split(", ").length) > 1) {
-			for (int i=1; i<selectItems.size(); i=i+count) {
-				line = "";
-				iPlaceholder = i;
-				for (int j=0; j<count; j++) {
-					if (j == count-1) {
-						line += selectItems.get(iPlaceholder).trim().replace("\\s+", "");
-						iPlaceholder++;
-						holdItems.add(line);
-					} else {
-						line += selectItems.get(iPlaceholder).trim().replace("\\s+", "") + " ";
-						iPlaceholder++;
+		
+		if (!items.contains("*")) {
+			if ((count = selectItems.get(0).split(", ").length) > 1) {
+				for (int i=1; i<selectItems.size(); i=i+count) {
+					line = "";
+					iPlaceholder = i;
+					for (int j=0; j<count; j++) {
+						if (j == count-1) {
+							line += selectItems.get(iPlaceholder).trim().replace("\\s+", "");
+							iPlaceholder++;
+							holdItems.add(line);
+						} else {
+							line += selectItems.get(iPlaceholder).trim().replace("\\s+", "") + " ";
+							iPlaceholder++;
+						}
+					}
+				}
+			} else {
+				for (int i=1; i<selectItems.size(); i++) {
+					line = selectItems.get(i).trim().replace("\\s+", "");
+					holdItems.add(line);
+				}
+			}
+		} else {
+			if ((count = selectItems.get(0).split(", ").length) > 1) {
+				for (int i=1; i<selectItems.size(); i=i+count) {
+					line = "";
+					iPlaceholder = i;
+					for (int j=0; j<count; j++) {
+						line = "";
+						if (j == count-1) {
+							if (iPlaceholder < selectItems.size()) {
+							    line += selectItems.get(iPlaceholder).trim().replace("\\s+", "");
+							}
+							iPlaceholder++;
+							holdItems.add(line);
+						} else {
+							line += selectItems.get(iPlaceholder).trim().replace("\\s+", "") + " ";
+							iPlaceholder++;
+							holdItems.add(line);
+						}
 					}
 				}
 			}
-			selectItems = new ArrayList<>(holdItems);
 		}
 		
+		selectItems = new ArrayList<>(holdItems);
+
+		
 		try (RandomAccessFile raf = new RandomAccessFile(testFile, "rw")) {
-			
-			parts = selectItems.get(0).trim().split(", ");
-			
-			for (int i=0; i<parts.length; i++) {
-				if (parts[i].contains(nameID.get(1))) {
-					if (!parts[i].trim().contains("INTEGER")) {
-						System.out.println("❌ Key must be of value INTEGER");
-			            return;
-			        } 
-				}
-			}
-			
-			if (!items.contains(nameID.get(1)) && !items.contains("*")) {
-				System.out.println("❌ Key must be in the table");
-				return;
-			}
-			
-			raf.setLength(0); 
-			raf.seek(0);
-			
-			for (int i=0; i<selectItems.size(); i++) {
-				line = selectItems.get(i).trim().replaceAll("\\s+", " ");
-				parts = line.split(" ");
-				if (i==0) {
-					for (int j=0; j<parts.length; j++) {
-						if (parts[j].contains(nameID.get(1))) {
-							columnNumber = j;
-						}
-					}
-					if (columnNumber == -1) {
-						System.out.println("❌ Key doesn't exist in table");
-						return;
-					}
-					
-					
-					parts = selectItems.get(i).replaceAll("\\s+", " ").replace("{", "").replace("}", "").trim().split(", ");
-					line = parts[columnNumber];
-					
-					raf.writeBytes("{" + line);
-					
-					for (int j=0; j<parts.length; j++) {
-						if (!(j==columnNumber)) {
-							raf.writeBytes(", " + parts[j]);
-						}
-					}
-					raf.writeBytes("}" + System.lineSeparator());
-					continue;
-				}
-				
-				line = parts[columnNumber];
-				
-				raf.writeBytes(line);
-				
-				for (int j=0; j<parts.length; j++) {
-					if (!(j==columnNumber)) {
-						raf.writeBytes(" " + parts[j]);
-					}
-				}
-				
-				raf.writeBytes(System.lineSeparator());
-			}
-			
-//			int count = -1;
-//			for (String select : selectItems) {
-//				if (count==-0 && !select.contains(nameID.get(1))) {
-//					System.out.println("Key must be in the first column of the table");
-//					return;
-//				}
-//				if (count==-1) {
-//					raf.writeBytes("{" + select.trim().replaceAll("\\s+", " ").replace("{", "").replace("}", "") + "}" + System.lineSeparator());
-//					continue;
-//				}
-//				line = select.trim().replaceAll("\\s+", " ");
-//				raf.writeBytes(select.trim().replaceAll("\\s+", " ") + System.lineSeparator());
-//				count++;
-//			}
-			
-			table.writePrimaryKeyToFile(path + nameID.get(0).replace(".txt", ""));
-			System.out.println("✅ LET successful!");
+
+		    parts = selectItems.get(0).trim().split(", ");
+		    
+		    if (nameID.size() > 1) {
+		        for (int i = 0; i < parts.length; i++) {
+		            if (parts[i].contains(nameID.get(1))) {
+		                if (!parts[i].trim().contains("INTEGER")) {
+		                    System.out.println("❌ Key must be of value INTEGER");
+		                    return;
+		                }
+		            }
+		        }
+
+		        if (!items.contains(nameID.get(1)) && !items.contains("*")) {
+		            System.out.println("❌ Key must be in the table");
+		            return;
+		        }
+		    }
+
+		    raf.setLength(0); 
+		    raf.seek(0);
+
+		    for (int i = 0; i < selectItems.size(); i++) {
+		        line = selectItems.get(i).trim().replaceAll("\\s+", " ");
+		        parts = line.split(" ");
+
+		        if (i == 0) {
+		            if (nameID.size() > 1) {
+		                for (int j = 0; j < parts.length; j++) {
+		                    if (parts[j].contains(nameID.get(1))) {
+		                        columnNumber = j;
+		                    }
+		                }
+
+		                if (columnNumber == -1) {
+		                    System.out.println("❌ Key doesn't exist in table");
+		                    return;
+		                }
+		               
+		                parts = selectItems.get(i).replaceAll("\\s+", " ").replace("{", "").replace("}", "").trim().split(", ");
+		                line = parts[columnNumber];
+		                raf.writeBytes("{" + line);
+
+		                for (int j = 0; j < parts.length; j++) {
+		                    if (j != columnNumber) {
+		                        raf.writeBytes(", " + parts[j]);
+		                    }
+		                }
+
+		                raf.writeBytes("}" + System.lineSeparator());
+		            } else {
+		            	if (i==0 && !items.get(0).equals("*")) {
+		            		raf.writeBytes("{" + selectItems.get(i) + System.lineSeparator());
+		            	} else {
+		            		 raf.writeBytes(selectItems.get(i) + System.lineSeparator());
+		            	}
+		            }
+
+		            continue;
+		        }
+
+		        if (nameID.size() > 1) {
+		            line = parts[columnNumber];
+		            raf.writeBytes(line);
+
+		            for (int j = 0; j < parts.length; j++) {
+		                if (j != columnNumber) {
+		                    raf.writeBytes(" " + parts[j]);
+		                }
+		            }
+
+		            raf.writeBytes(System.lineSeparator());
+		        } else {
+		            raf.writeBytes(selectItems.get(i) + System.lineSeparator());
+		        }
+		    }
+		    if (nameID.size() > 1) {
+		        table.writePrimaryKeyToFile(path + nameID.get(0).replace(".txt", ""));
+		    }
+
+		    System.out.println("✅ LET successful!");
 		}
+
 	}
 	
 //	public void selectMultipleTables(ArrayList<String> items, String condition, Table table) throws FileNotFoundException, IOException {
