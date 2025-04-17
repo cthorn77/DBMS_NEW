@@ -336,13 +336,22 @@ public class UserInterface {
 				
 			case "INPUT":
 				command = choice.replace(";", "").split(" ");
-				String line;
+				String line = "";
+				String complete = "";
 				
 				if (command.length == 2) {
 					try (RandomAccessFile raf = new RandomAccessFile(command[1] + ".txt", "rw")) {
 						while ((line = raf.readLine()) != null) {
-							runInput(line);
+							complete += line.trim() + " ";
+							if (complete.trim().endsWith(";")) {
+								runInput(complete.trim());
+								complete = "";
+								break;
+							} else {
+								continue;
+							}		
 						}
+						
 					}
 				} else {
 					try (RandomAccessFile raf = new RandomAccessFile(command[1] + ".txt", "rw")) {
@@ -356,8 +365,14 @@ public class UserInterface {
 						System.setOut(new PrintStream(file));
 						
 						while ((line = raf.readLine()) != null) {
-							runInput(line);
-							
+							complete += line.trim() + " ";
+							if (complete.trim().endsWith(";")) {
+								runInput(complete.trim());
+								complete = "";
+								break;
+							} else {
+								continue;
+							}		
 						}
 						
 						System.setOut(originalOut);
