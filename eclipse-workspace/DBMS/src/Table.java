@@ -677,12 +677,15 @@ public class Table {
 					}
 					contains = false;
 				}
+				
+				System.out.println("✅ DELETE successful!");
 			}
 		} else {
 			try (RandomAccessFile raf = new RandomAccessFile(path + insertedString, "rw")) {
 				raf.setLength(0);
 				raf.close();
 				file.delete();
+				System.out.println("✅ DELETE successful!");
 			}
 		}
 	}
@@ -731,6 +734,8 @@ public class Table {
 			for (int i=1; i<records.size(); i++) {
 				raf.writeBytes(records.get(i) + System.lineSeparator());
 			}
+			
+			System.out.println("✅ RENAME successful!");
 		}
 	}
 	
@@ -823,6 +828,8 @@ public class Table {
 					raf.writeBytes(line + System.lineSeparator());
 				}
 			}
+			
+			System.out.println("✅ UPDATE successful!");
 			
 		}
 	}
@@ -1157,6 +1164,7 @@ public class Table {
 //			}
 			
 			table.writePrimaryKeyToFile(path + nameID.get(0).replace(".txt", ""));
+			System.out.println("✅ LET successful!");
 		}
 	}
 	

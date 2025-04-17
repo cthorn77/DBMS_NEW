@@ -12,7 +12,7 @@ public class Database {
 			boolean created = folder.mkdir();
 			
 			if (created) {
-				System.out.println("Database folder '" + name + "' created");
+				System.out.println("✅ Database folder '" + name + "' created");
 			} else {
 				System.out.println("Failed to create the database folder");
 			}

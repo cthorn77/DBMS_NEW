@@ -59,7 +59,7 @@ public class UserInterface {
 				}
 				
 				inUse = command[1] + "/";
-				System.out.println("Database in use");
+				System.out.println("✅ Database in use");
 				break;
 				
 			case "CREATE":
