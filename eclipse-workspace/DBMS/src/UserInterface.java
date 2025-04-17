@@ -26,11 +26,23 @@ public class UserInterface {
 	
 	@SuppressWarnings("unlikely-arg-type")
 	public void start() throws IOException {
-		System.out.println("Enter a command");
+//		System.out.println("Enter a command");
 		Boolean run = true;
 		
 		while (run) {
-			String choice = kb.nextLine();
+//			String choice = kb.nextLine();
+			
+			System.out.println("Enter a command:");
+		    StringBuilder commandBuilder = new StringBuilder();
+		    String line2;
+
+		    do {
+		        line2 = kb.nextLine().trim();
+		        commandBuilder.append(line2).append(" ");
+		    } while (!line2.endsWith(";"));
+
+		    String choice = commandBuilder.toString().trim();
+		    
 			switch(parseString(choice, inUse)) {
 			case "CREATE_DATABASE":
 				command = choice.replace(";", "").split(" ");
@@ -42,7 +54,7 @@ public class UserInterface {
 				file = new File(command[1]);
 				
 				if (!file.exists()) {
-					System.out.println("Database doesn't exist");
+					System.out.println("❌ Database doesn't exist");
 					break;
 				}
 				
@@ -52,7 +64,7 @@ public class UserInterface {
 				
 			case "CREATE":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.split("\\(");
 					command = command[0].split(" ");
@@ -67,7 +79,7 @@ public class UserInterface {
 				
 			case "CREATE_PRIMARY":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.split("\\(");
 					command = command[0].split(" ");
@@ -86,7 +98,7 @@ public class UserInterface {
 			
 			case "INSERT":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.split("\\(");
 					String intoFile = command[0].split(" ")[2];
@@ -136,7 +148,6 @@ public class UserInterface {
 					if (!isValid) {
 					    System.out.println("❌ INSERT failed due to invalid data.");
 					} else {
-					    System.out.println("✅ INSERT successful!");
 					    table.writeRecordsToFile(inUse + intoFile + ".txt", values, table, bst);
 					}
 				}
@@ -146,7 +157,7 @@ public class UserInterface {
 			case "SELECT_FROM":
 				
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					condition = "";
 					command = choice.replace(";", "").split(" ");
@@ -181,7 +192,7 @@ public class UserInterface {
 			case "SELECT_MULTIPLE_FROM":
 				
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").split(" ");
 					items = new ArrayList<>();
@@ -213,7 +224,7 @@ public class UserInterface {
 			
 			case "DESCRIBE":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").split(" ");
 					table = new Table(command[1], inUse);
@@ -224,7 +235,7 @@ public class UserInterface {
 				
 			case "DELETE":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").split(" ");
 					
@@ -243,7 +254,7 @@ public class UserInterface {
 				
 			case "RENAME":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").replace(")", "").split("\\(");
 					tableName = command[0].split(" ")[1];
@@ -260,7 +271,7 @@ public class UserInterface {
 //				UPDATE TableName SET AttrName = Constant [,AttrName = Constant] * [WHERE Condition] ‘;’
 			case "UPDATE":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").split(" ");
 					String condition = choice.split("WHERE")[1].replace(";", "").trim();
@@ -277,7 +288,7 @@ public class UserInterface {
 				
 			case "LET":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					condition = "";
 					command = choice.replace(";", "").split(" ");
@@ -358,7 +369,7 @@ public class UserInterface {
 				
 		    case "MULTI_TABLE_SELECT":
 		    	if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").split(" ");
 					items = new ArrayList<>();
@@ -371,7 +382,9 @@ public class UserInterface {
 						command = command[0].trim().split(" ");
 						
 					}
-					
+					else {
+						condition = "";
+					}
 					for (int i=1; i<command.length; i++) {
 						if (!command[i].trim().equals("FROM")) {
 							items.add(command[i].replace(",", "").trim());
@@ -393,7 +406,7 @@ public class UserInterface {
 				break;
 
 			default:
-				System.out.println("Error: Please enter a proper command.");
+				System.out.println("❌ Error: Please enter a proper command.");
 			}
 		}
 	}
@@ -416,14 +429,13 @@ public class UserInterface {
 	    else if (choice.startsWith("INSERT INTO") && choice.contains("VALUES") && choice.endsWith(";")) {
 	        return "INSERT";
 	    } 
-	    else if (choice.equals("EXIT")) {
+	    else if (choice.equals("EXIT;")) {
 	        return "EXIT";
 	    } 
-	    // ✅ Fixing SELECT parsing
-	    else if (selectCommand[0].equals("SELECT") && selectCommand[2].equals("FROM") && !selectCommand[1].contains(".")  && partsBeforeWhere.length == 4 && choice.endsWith(";")) {
+	    else if (selectCommand[0].equals("SELECT") && selectCommand[2].equals("FROM") && partsBeforeWhere[partsBeforeWhere.length-2].contains("FROM")  && partsBeforeWhere.length == 4 && choice.endsWith(";")) {
 	        return "SELECT_FROM";
 	    }
-	    else if (selectCommand[0].equals("SELECT") && selectCommand[1].contains(",") && !selectCommand[1].contains(".") && selectCommand.length > 4 && choice.endsWith(";")) {
+	    else if (selectCommand[0].equals("SELECT") && selectCommand[1].contains(",") && partsBeforeWhere[partsBeforeWhere.length-2].contains("FROM") && selectCommand.length > 4 && choice.endsWith(";")) {
 	    	return "SELECT_MULTIPLE_FROM";
 	    }
 	    else if (selectCommand[0].equals("USE") && selectCommand.length == 2 && choice.endsWith(";")) {
@@ -448,7 +460,7 @@ public class UserInterface {
 	    else if (selectCommand[0].equals("INPUT") && choice.endsWith(";")) {
 	    	return "INPUT";
 	    }
-	    else if (choice.trim().startsWith("SELECT") && choice.contains("FROM") && choice.contains(".") && choice.contains("WHERE")) {
+	    else if (choice.trim().startsWith("SELECT") && !partsBeforeWhere[partsBeforeWhere.length-2].contains("FROM")) {
 	    	return "MULTI_TABLE_SELECT";
 	    }
 
@@ -468,7 +480,7 @@ public class UserInterface {
 				file = new File(command[1]);
 				
 				if (!file.exists()) {
-					System.out.println("Database doesn't exist");
+					System.out.println("❌ Database doesn't exist");
 					break;
 				}
 				
@@ -478,7 +490,7 @@ public class UserInterface {
 				
 			case "CREATE":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.split("\\(");
 					command = command[0].split(" ");
@@ -493,7 +505,7 @@ public class UserInterface {
 				
 			case "CREATE_PRIMARY":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.split("\\(");
 					command = command[0].split(" ");
@@ -512,7 +524,7 @@ public class UserInterface {
 			
 			case "INSERT":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.split("\\(");
 					String intoFile = command[0].split(" ")[2];
@@ -528,7 +540,7 @@ public class UserInterface {
 	
 					try {
 					    for (int i = 0, j = 0; i < values.length && j < dataTypes.length; i++, j++) {
-					        values[i] = values[i].trim(); // ✅ Trim space
+					        values[i] = values[i].trim();
 	
 					        if (dataTypes[j].trim().equals("INTEGER")) {
 					            if (!values[i].matches("^-?\\d+$")) {
@@ -572,7 +584,7 @@ public class UserInterface {
 			case "SELECT_FROM":
 				
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					condition = "";
 					command = choice.replace(";", "").split(" ");
@@ -607,7 +619,7 @@ public class UserInterface {
 			case "SELECT_MULTIPLE_FROM":
 				
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").split(" ");
 					items = new ArrayList<>();
@@ -639,7 +651,7 @@ public class UserInterface {
 			
 			case "DESCRIBE":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").split(" ");
 					table = new Table(command[1], inUse);
@@ -650,7 +662,7 @@ public class UserInterface {
 				
 			case "DELETE":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").split(" ");
 					
@@ -669,7 +681,7 @@ public class UserInterface {
 				
 			case "RENAME":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").replace(")", "").split("\\(");
 					tableName = command[0].split(" ")[1];
@@ -686,7 +698,7 @@ public class UserInterface {
 	//			UPDATE TableName SET AttrName = Constant [,AttrName = Constant] * [WHERE Condition] ‘;’
 			case "UPDATE":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").split(" ");
 					String condition = choice.split("WHERE")[1].replace(";", "").trim();
@@ -703,7 +715,7 @@ public class UserInterface {
 				
 			case "LET":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					condition = "";
 					command = choice.replace(";", "").split(" ");
@@ -751,7 +763,7 @@ public class UserInterface {
 				
 			case "INPUT":
 				if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").split(" ");
 					String line;
@@ -789,7 +801,7 @@ public class UserInterface {
 				
 			case "MULTI_TABLE_SELECT":
 		    	if (inUse.equals("")) {
-					System.out.println("Must select a database");
+					System.out.println("❌ Must select a database");
 				} else {
 					command = choice.replace(";", "").split(" ");
 					items = new ArrayList<>();
@@ -820,7 +832,7 @@ public class UserInterface {
 		    	break;
 	
 			default:
-				System.out.println("Error: Please enter a proper command.");
+				System.out.println("❌ Error: Please enter a proper command.");
 			}
 		}
 

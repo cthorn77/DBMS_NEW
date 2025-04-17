@@ -110,6 +110,7 @@ public class Table {
 			}
 			
 			raf.writeBytes(System.lineSeparator());
+			System.out.println("✅ INSERT successful!");
 			
 		} catch (Exception e) {
 			System.out.println("Failed to add record to file.");
@@ -126,21 +127,21 @@ public class Table {
 
 	    try (RandomAccessFile raf = new RandomAccessFile(insertedFile, "r")) {
 	        raf.seek(0);
-	        String info = raf.readLine(); // ✅ Read first line
+	        String info = raf.readLine();
 
 	        if (info == null || info.isEmpty()) {
 	            System.out.println("❌ File is empty.");
 	            return new String[0];
 	        }
 
-	        info = info.replace("{", "").replace("}", ""); // ✅ Remove braces
-	        String[] parts = info.split(",\\s*"); // ✅ Split by `, ` to separate columns
+	        info = info.replace("{", "").replace("}", "");
+	        String[] parts = info.split(",\\s*");
 
 	        for (int i = 0; i < parts.length; i++) {
-	            parts[i] = parts[i].split("=")[1]; // ✅ Extract only the data type (TEXT, INTEGER, FLOAT)
+	            parts[i] = parts[i].split("=")[1];
 	        }
 
-	        return parts; // ✅ Returns ["TEXT", "INTEGER", "INTEGER"]
+	        return parts;
 	    } catch (Exception e) {
 	        System.out.println("❌ Could not retrieve data types: " + e.getMessage());
 	        e.printStackTrace();
@@ -178,7 +179,7 @@ public class Table {
 			
 			
 			if (items.isEmpty()) {
-				System.out.println("No columns selected");
+				System.out.println("❌ No columns selected");
 				return new ArrayList<String>();
 			}
 			
@@ -199,7 +200,7 @@ public class Table {
 						getItems = table.getItems(conditionItems, insertedString, table);
 						
 						if (getItems.isEmpty()) {
-							System.out.println("No records match the condition");
+							System.out.println("❌ No records match the condition");
 							return new ArrayList<>();
 						}
 						
@@ -233,7 +234,7 @@ public class Table {
 						}
 						
 						if (count == 0) {
-							System.out.println("Table is empty");
+							System.out.println("❌ Table is empty");
 						}
 						
 						return new ArrayList<String>();	
@@ -265,7 +266,7 @@ public class Table {
 					}
 					
 					if (columnNumbers.isEmpty()) {
-						System.out.println("Column does not exist");
+						System.out.println("❌ Column does not exist");
 						return new ArrayList<String>();
 					}
 					
@@ -286,7 +287,7 @@ public class Table {
 						getItems = table.getItems(conditionItems, insertedString, table);
 						
 						if (getItems.isEmpty()) {
-							System.out.println("No records match the condition");
+							System.out.println("❌ No records match the condition");
 							return new ArrayList<>();
 						}
 						
@@ -295,20 +296,19 @@ public class Table {
 							addSpaces = "";
 							
 							for (int i = 0; i < columnNumbers.size(); i++) { 
-						        int colIndex = columnNumbers.get(i);  // ✅ Get correct column index
+						        int colIndex = columnNumbers.get(i);
 
-						        if (colIndex >= dataParts.length) {  // ✅ Prevent index error
+						        if (colIndex >= dataParts.length) {
 						            System.out.println("❌ Error: Column index " + colIndex + " out of bounds for row: " + line);
 						            break;
 						        }
 						        
-						        if (i == columnNumbers.size() - 1) {  // ✅ Last column, print new line
+						        if (i == columnNumbers.size() - 1) {
 						            System.out.print(dataParts[colIndex] + "\n");
 						            returnItems.add(dataParts[colIndex]);
 						        } else {
-						            addSpaces = dataParts[colIndex];  // ✅ Get correct column value 
+						            addSpaces = dataParts[colIndex]; 
 						            returnItems.add(dataParts[colIndex]);
-						            // ✅ Add spacing for alignment
 						            for (int j = dataParts[colIndex].length(); j < 15; j++) { 
 						                addSpaces += " ";
 						            }
@@ -322,24 +322,23 @@ public class Table {
 					else {
 						while ((line = raf.readLine()) != null) {
 						    count++;
-						    dataParts = line.split(" ");  // ✅ Split row data
+						    dataParts = line.split(" ");
 						    addSpaces = "";
 
 						    for (int i = 0; i < columnNumbers.size(); i++) { 
-						        int colIndex = columnNumbers.get(i);  // ✅ Get correct column index
+						        int colIndex = columnNumbers.get(i);
 
-						        if (colIndex >= dataParts.length) {  // ✅ Prevent index error
+						        if (colIndex >= dataParts.length) {
 						            System.out.println("❌ Error: Column index " + colIndex + " out of bounds for row: " + line);
 						            break;
 						        }
 						        
-						        if (i == columnNumbers.size() - 1) {  // ✅ Last column, print new line
+						        if (i == columnNumbers.size() - 1) {
 						            System.out.print(dataParts[colIndex] + "\n");
 						            returnItems.add(dataParts[colIndex]);
 						        } else {
-						            addSpaces = dataParts[colIndex];  // ✅ Get correct column value 
-						            returnItems.add(dataParts[colIndex]);
-						            // ✅ Add spacing for alignment
+						            addSpaces = dataParts[colIndex]; 
+						            returnItems.add(dataParts[colIndex]);						           
 						            for (int j = dataParts[colIndex].length(); j < 15; j++) { 
 						                addSpaces += " ";
 						            }
@@ -350,7 +349,7 @@ public class Table {
 						}
 						
 						if (count == 0) {
-							System.out.println("Table is empty");
+							System.out.println("❌ Table is empty");
 						}
 					}
 					return returnItems;
@@ -375,7 +374,7 @@ public class Table {
 			String[] parts;
 			
 			if (items.isEmpty()) {
-				System.out.println("No columns selected");
+				System.out.println("❌ No columns selected");
 				return new ArrayList<String>();
 			}
 			
@@ -414,7 +413,7 @@ public class Table {
 			}
 			
 			if (columnNumber == -1) {
-				System.out.println("Column does not exist");
+				System.out.println("❌ Column does not exist");
 				return new ArrayList<>();
 			}
 			
@@ -438,7 +437,7 @@ public class Table {
 				}
 				
 				if (columnNumber == -1) {
-					System.out.println("Column does not exist");
+					System.out.println("❌ Column does not exist");
 					return new ArrayList<>();
 				}
 				
@@ -639,7 +638,7 @@ public class Table {
 		String line;
 		
 		if (!file.exists()) {
-			System.out.println("File does not exist");
+			System.out.println("❌ File does not exist");
 			return;
 		}
 		
@@ -650,7 +649,7 @@ public class Table {
 			getItems = table.getItems(conditionItems, path + insertedString, table);
 			
 			if (getItems.isEmpty()) {
-				System.out.println("No records match the condition");
+				System.out.println("❌ No records match the condition");
 				return;
 			}
 			
@@ -697,7 +696,7 @@ public class Table {
 		String[] parts;
 		
 		if (!file.exists()) {
-			System.out.println("File does not exist");
+			System.out.println("❌ File does not exist");
 			return;
 		}
 		
@@ -715,7 +714,7 @@ public class Table {
 			raf.writeBytes("{");
 			
 			if (attributes.length != attributeParts.length) {
-				System.out.println("Invalid attribute count");
+				System.out.println("❌ Invalid attribute count");
 				return;
 			}
 
@@ -752,7 +751,7 @@ public class Table {
 		File file = new File(path + insertedString);
 		 
 		if (!file.exists()) {
-			System.out.println("Field does not exist");
+			System.out.println("❌ Field does not exist");
 			return;
 		}
 		
@@ -791,14 +790,14 @@ public class Table {
 			}
 			
 			if (columnNumber == -1) {
-				System.out.println("Column does not exist");
+				System.out.println("❌ Column does not exist");
 				return;
 			}
 			
 			String check = table.checkIsPrimary(path + insertedString.replace(".txt", ""));
 			
 			if (check.equals("isPrimary") && columnNumber == 0) {
-				System.out.println("Not allowed to update primary key values");
+				System.out.println("❌ Not allowed to update primary key values");
 				return;
 			}
 			
@@ -855,7 +854,7 @@ public class Table {
 			
 			
 			if (items.isEmpty()) {
-				System.out.println("No columns selected");
+				System.out.println("❌ No columns selected");
 				return new ArrayList<String>();
 			}
 			
@@ -878,7 +877,7 @@ public class Table {
 						getItems = table.getItems(conditionItems, insertedString, table);
 						
 						if (getItems.isEmpty()) {
-							System.out.println("No records match the condition");
+							System.out.println("❌ No records match the condition");
 							return new ArrayList<>();
 						}
 						
@@ -914,7 +913,7 @@ public class Table {
 						}
 						
 						if (count == 0) {
-							System.out.println("Table is empty");
+							System.out.println("❌ Table is empty");
 						}
 						
 						return new ArrayList<String>();	
@@ -946,7 +945,7 @@ public class Table {
 					}
 					
 					if (columnNumbers.isEmpty()) {
-						System.out.println("Column does not exist");
+						System.out.println("❌ Column does not exist");
 						return new ArrayList<String>();
 					}
 					
@@ -972,7 +971,7 @@ public class Table {
 						getItems = table.getItems(conditionItems, insertedString, table);
 						
 						if (getItems.isEmpty()) {
-							System.out.println("No records match the condition");
+							System.out.println("❌ No records match the condition");
 							return new ArrayList<>();
 						}
 						
@@ -981,20 +980,19 @@ public class Table {
 							addSpaces = "";
 							
 							for (int i = 0; i < columnNumbers.size(); i++) { 
-						        int colIndex = columnNumbers.get(i);  // ✅ Get correct column index
+						        int colIndex = columnNumbers.get(i);
 
-						        if (colIndex >= dataParts.length) {  // ✅ Prevent index error
+						        if (colIndex >= dataParts.length) { 
 						            System.out.println("❌ Error: Column index " + colIndex + " out of bounds for row: " + line);
 						            break;
 						        }
 						        
-						        if (i == columnNumbers.size() - 1) {  // ✅ Last column, print new line
+						        if (i == columnNumbers.size() - 1) {
 //						            System.out.print(dataParts[colIndex] + "\n");
 						            returnItems.add(dataParts[colIndex]);
 						        } else {
-						            addSpaces = dataParts[colIndex];  // ✅ Get correct column value 
+						            addSpaces = dataParts[colIndex];
 						            returnItems.add(dataParts[colIndex]);
-						            // ✅ Add spacing for alignment
 						            for (int j = dataParts[colIndex].length(); j < 15; j++) { 
 						                addSpaces += " ";
 						            }
@@ -1008,24 +1006,23 @@ public class Table {
 					else {
 						while ((line = raf.readLine()) != null) {
 						    count++;
-						    dataParts = line.split(" ");  // ✅ Split row data
+						    dataParts = line.split(" ");
 						    addSpaces = "";
 
 						    for (int i = 0; i < columnNumbers.size(); i++) { 
-						        int colIndex = columnNumbers.get(i);  // ✅ Get correct column index
+						        int colIndex = columnNumbers.get(i);
 
-						        if (colIndex >= dataParts.length) {  // ✅ Prevent index error
+						        if (colIndex >= dataParts.length) {
 						            System.out.println("❌ Error: Column index " + colIndex + " out of bounds for row: " + line);
 						            break;
 						        }
 						        
-						        if (i == columnNumbers.size() - 1) {  // ✅ Last column, print new line
+						        if (i == columnNumbers.size() - 1) {
 //						            System.out.print(dataParts[colIndex] + "\n");
 						            returnItems.add(dataParts[colIndex]);
 						        } else {
-						            addSpaces = dataParts[colIndex];  // ✅ Get correct column value 
+						            addSpaces = dataParts[colIndex]; 
 						            returnItems.add(dataParts[colIndex]);
-						            // ✅ Add spacing for alignment
 						            for (int j = dataParts[colIndex].length(); j < 15; j++) { 
 						                addSpaces += " ";
 						            }
@@ -1036,7 +1033,7 @@ public class Table {
 						}
 						
 						if (count == 0) {
-							System.out.println("Table is empty");
+							System.out.println("❌ Table is empty");
 						}
 					}
 					
@@ -1088,14 +1085,14 @@ public class Table {
 			for (int i=0; i<parts.length; i++) {
 				if (parts[i].contains(nameID.get(1))) {
 					if (!parts[i].trim().contains("INTEGER")) {
-						System.out.println("Key must be of value INTEGER");
+						System.out.println("❌ Key must be of value INTEGER");
 			            return;
 			        } 
 				}
 			}
 			
 			if (!items.contains(nameID.get(1)) && !items.contains("*")) {
-				System.out.println("Key must be in the table");
+				System.out.println("❌ Key must be in the table");
 				return;
 			}
 			
@@ -1112,7 +1109,7 @@ public class Table {
 						}
 					}
 					if (columnNumber == -1) {
-						System.out.println("Key doesn't exist in table");
+						System.out.println("❌ Key doesn't exist in table");
 						return;
 					}
 					
@@ -1163,150 +1160,381 @@ public class Table {
 		}
 	}
 	
+//	public void selectMultipleTables(ArrayList<String> items, String condition, Table table) throws FileNotFoundException, IOException {
+//		ArrayList<String> columnNames = new ArrayList<>();
+//		ArrayList<String> table1items = new ArrayList<>();
+//		ArrayList<String> table2items = new ArrayList<>();
+//		ArrayList<String> columns = new ArrayList<>();
+//		ArrayList<String> columnData = new ArrayList<>();
+//		ArrayList<Integer> columnNumbers = new ArrayList<>();
+//		ArrayList<String> conditionColumns = new ArrayList<>();
+//		ArrayList<Integer> conditionColumnNumbers = new ArrayList<>();
+//		ArrayList<String> output = new ArrayList<>();
+//		String[] parts;
+//		String[] parts2;
+//		String operator = "";
+//		
+//		
+//		if (!condition.equals("")) {
+//			
+//			List<String> operators = List.of(">", "<", ">=", "<=", "=", "!=");
+//			
+//			for (String op : operators) {
+//				if (condition.contains(op)) {
+//					operator = op;
+//					break;
+//				}
+//			}
+//			
+//			parts = condition.trim().split(operator);
+//			if (parts.length != 2) {
+//			    System.out.println("❌ Split failed. Operator: " + operator);
+//			    System.out.println("Condition: " + condition);
+//			    return;
+//			}
+//			
+//			conditionColumns.add(parts[0].trim().split("\\.")[1]);
+//			conditionColumns.add(parts[1].trim().split("\\.")[1]);
+//		}
+//		
+//		for (String item : items) {
+//			if (item.contains(".")) {
+//				columnNames.add(item.trim());
+//			}
+//		}
+//		
+//		for (int i=0; i<columnNames.size(); i++) {
+//			String tableName = columnNames.get(i).split("\\.")[0];
+//			String tableColumn = columnNames.get(i).split("\\.")[1]; 
+//			
+//			columns.add(tableColumn);
+//			
+//			File file = new File(path + tableName + ".txt");
+//			
+//			try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+//				String line;
+//				
+//				parts = raf.readLine().trim().split(", ");
+//				
+//				for (int j=0; j<parts.length; j++) {
+//					if (parts[j].contains(conditionColumns.get(i))) {
+//						conditionColumnNumbers.add(j);
+//					}
+//					
+//					if (parts[j].contains(columns.get(i))) {
+//						columnData.add(parts[j]);
+//					}
+//					
+//					if (parts[j].contains(tableColumn)) {
+//						columnNumbers.add(j);
+//					}
+//				}
+//				
+//				if (columnNumbers.isEmpty()) {
+//					System.out.println("Column does not exist");
+//					return;
+//				}
+//				
+//				if (table1items.isEmpty()) {
+//					while ((line = raf.readLine()) != null) {
+//						table1items.add(line.trim());
+//					}
+//				} else {
+//					while ((line = raf.readLine()) != null) {
+//						table2items.add(line.trim());
+//					}
+//				}
+//				
+//				// Done adding items from both tables
+//					
+//			}
+//		}
+//		
+//		// evaluateExpression(String[] conditionItems, String comparisonItem)
+//		String[] arr = new String[3];
+//		arr[1] = operator;
+//		String addSpaces = "";
+//
+//		
+//		for (int i=0; i<table1items.size(); i++) {
+//			parts = table1items.get(i).trim().split(" ");
+//			for (int j=0; j<table2items.size(); j++) {
+//				 parts2 = table2items.get(j).trim().split(" ");
+//				 arr[0] = parts[conditionColumnNumbers.get(0)];
+//				 arr[2] = parts2[conditionColumnNumbers.get(1)];
+//				
+//				 if (evaluateExpression(arr, arr[0])) {
+//					 
+//					 addSpaces += parts[columnNumbers.get(0)];
+//					 
+//					 for (int k=parts[columnNumbers.get(0)].length(); k<15; k++) {
+//						 addSpaces += " ";
+//					 }
+//					 
+//					 addSpaces += parts2[columnNumbers.get(1)];
+//					 
+//					 for (int k=parts2[columnNumbers.get(1)].length(); k<15; k++) {
+//						 addSpaces += " ";
+//					 }
+//					 
+//					 output.add(addSpaces);
+//					 addSpaces = "";
+//				 }
+//			}
+//		}
+//		
+//		if (output.isEmpty()) {
+//			System.out.println("No items match the condition");
+//			return;
+//		}
+//		
+//		System.out.print("📌 Table Schema: {" );
+//		
+//		for (int i=0; i<columnData.size(); i++) {
+//			if (i == columnData.size()-1) {
+//				System.out.print(columnData.get(i).replace("{", "").replace("}", "") + "}\n");
+//			} else {
+//				System.out.print(columnData.get(i).replace("{", "").replace("}", "") + ", ");
+//			}
+//		}
+//		
+//		System.out.println("📋 Table Data:");
+//		
+//		for (String line : output) {
+//			System.out.println(line);
+//		}
+//		
+//	}
+	
 	public void selectMultipleTables(ArrayList<String> items, String condition, Table table) throws FileNotFoundException, IOException {
-		ArrayList<String> columnNames = new ArrayList<>();
-		ArrayList<String> table1items = new ArrayList<>();
-		ArrayList<String> table2items = new ArrayList<>();
-		ArrayList<String> columns = new ArrayList<>();
-		ArrayList<String> columnData = new ArrayList<>();
-		ArrayList<Integer> columnNumbers = new ArrayList<>();
-		ArrayList<String> conditionColumns = new ArrayList<>();
-		ArrayList<Integer> conditionColumnNumbers = new ArrayList<>();
-		ArrayList<String> output = new ArrayList<>();
-		String[] parts;
-		String[] parts2;
-		String operator = "";
+		ArrayList<File> tables = new ArrayList<>();
+		HashMap<String, File> variableTables = new HashMap<>();
+		HashMap<String, Integer> variableColumns = new HashMap<>();
+		String[] conditionItems = new String[] {};
 		
-		
-		if (!condition.equals("")) {
-			
-			List<String> operators = List.of(">", "<", ">=", "<=", "=", "!=");
-			
-			for (String op : operators) {
-				if (condition.contains(op)) {
-					operator = op;
-					break;
-				}
-			}
-			
-			parts = condition.trim().split(operator);
-			if (parts.length != 2) {
-			    System.out.println("❌ Split failed. Operator: " + operator);
-			    System.out.println("Condition: " + condition);
-			    return;
-			}
-			
-			conditionColumns.add(parts[0].trim().split("\\.")[1]);
-			conditionColumns.add(parts[1].trim().split("\\.")[1]);
-		}
-		
-		for (String item : items) {
-			if (item.contains(".")) {
-				columnNames.add(item.trim());
+		// Add required tables to tables array
+		for (int i=items.size()-1; i>=0; i--) {
+			File file = new File(path + items.get(i) + ".txt");
+			if (file.exists()) {
+				tables.add(file);
+			} else {
+				break;
 			}
 		}
 		
-		for (int i=0; i<columnNames.size(); i++) {
-			String tableName = columnNames.get(i).split("\\.")[0];
-			String tableColumn = columnNames.get(i).split("\\.")[1]; 
-			
-			columns.add(tableColumn);
-			
-			File file = new File(path + tableName + ".txt");
-			
-			try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
-				String line;
-				
-				parts = raf.readLine().trim().split(", ");
-				
-				for (int j=0; j<parts.length; j++) {
-					if (parts[j].contains(conditionColumns.get(i))) {
-						conditionColumnNumbers.add(j);
-					}
-					
-					if (parts[j].contains(columns.get(i))) {
-						columnData.add(parts[j]);
-					}
-					
-					if (parts[j].contains(tableColumn)) {
-						columnNumbers.add(j);
-					}
-				}
-				
-				if (columnNumbers.isEmpty()) {
-					System.out.println("Column does not exist");
-					return;
-				}
-				
-				if (table1items.isEmpty()) {
-					while ((line = raf.readLine()) != null) {
-						table1items.add(line.trim());
-					}
-				} else {
-					while ((line = raf.readLine()) != null) {
-						table2items.add(line.trim());
-					}
-				}
-				
-				// Done adding items from both tables
-					
-			}
-		}
-		
-		// evaluateExpression(String[] conditionItems, String comparisonItem)
-		String[] arr = new String[3];
-		arr[1] = operator;
-		String addSpaces = "";
-
-		
-		for (int i=0; i<table1items.size(); i++) {
-			parts = table1items.get(i).trim().split(" ");
-			for (int j=0; j<table2items.size(); j++) {
-				 parts2 = table2items.get(j).trim().split(" ");
-				 arr[0] = parts[conditionColumnNumbers.get(0)];
-				 arr[2] = parts2[conditionColumnNumbers.get(1)];
-				
-				 if (evaluateExpression(arr, arr[0])) {
-					 
-					 addSpaces += parts[columnNumbers.get(0)];
-					 
-					 for (int k=parts[columnNumbers.get(0)].length(); k<15; k++) {
-						 addSpaces += " ";
-					 }
-					 
-					 addSpaces += parts2[columnNumbers.get(1)];
-					 
-					 for (int k=parts2[columnNumbers.get(1)].length(); k<15; k++) {
-						 addSpaces += " ";
-					 }
-					 
-					 output.add(addSpaces);
-					 addSpaces = "";
-				 }
-			}
-		}
-		
-		if (output.isEmpty()) {
-			System.out.println("No items match the condition");
+		// Check to make sure tables isn't empty
+		if (tables.isEmpty()) {
+			System.out.println("❌ Tables don't exist");
 			return;
 		}
 		
-		System.out.print("📌 Table Schema: {" );
-		
-		for (int i=0; i<columnData.size(); i++) {
-			if (i == columnData.size()-1) {
-				System.out.print(columnData.get(i).replace("{", "").replace("}", "") + "}\n");
-			} else {
-				System.out.print(columnData.get(i).replace("{", "").replace("}", "") + ", ");
+		// Get condition items
+		if (condition != "") {
+			String[] operators = new String[] {">", "<", "=", ">=", "<=", "!="};
+			
+			for (String op : operators) {
+				if (condition.contains(op)) {
+					conditionItems = condition.split(op);
+					conditionItems[0] = conditionItems[0].trim(); 
+					conditionItems[1] = conditionItems[1].trim();
+					break;
+				}
 			}
 		}
 		
-		System.out.println("📋 Table Data:");
 		
-		for (String line : output) {
-			System.out.println(line);
+		// Map every variable used to its table
+		ArrayList<String> data = new ArrayList<>();
+		for (int i=0; i<tables.size(); i++) {
+			try(RandomAccessFile raf = new RandomAccessFile(tables.get(i), "rw")) {
+				String line = raf.readLine();
+				String[] parts = line.replace("{", "").replace("}", "").trim().split(", ");
+				// Map select variables to table
+				for (int j=0; j<items.size()-tables.size(); j++) {
+					if (line.contains(items.get(j))) {
+						// Check for data
+						int count = 0;
+						for (String part : parts) {
+							if (part.split("=")[0].equals(items.get(j))) {
+								variableTables.put(items.get(j), tables.get(i));
+								variableColumns.put(items.get(j), count);
+								data.add(part);
+								
+							}
+							count++;
+						}
+					}
+				}
+				
+				// Map condition variables to table
+				if (condition != "") {
+					for (int j=0; j<conditionItems.length; j++) {
+						int count = 0;
+						for (String part : parts) {
+							if (part.split("=")[0].equals(conditionItems[j])) {
+								variableTables.put(conditionItems[j], tables.get(i));
+								variableColumns.put(conditionItems[j], count);
+							}
+							count++;
+						}	
+					}
+				}
+			}
 		}
 		
+		// Form data String
+		System.out.print("📌 Table Schema: {" );
+		for (int i=0; i<items.size()-tables.size(); i++) {
+			
+			for (String dataPart : data) {
+				if (dataPart.contains(items.get(i))) {
+					if (i == items.size()-tables.size()-1) {
+						System.out.println(dataPart + "}");
+					} else {
+						System.out.print(dataPart + ", ");
+					}
+				}
+			}
+		}
+		
+		
+		if (condition.equals("")) {
+		    ArrayList<String[]> rowsTable1 = new ArrayList<>();
+		    ArrayList<String[]> rowsTable2 = new ArrayList<>();
+
+		    // Load each table’s rows
+		    for (int i = 0; i < tables.size(); i++) {
+		        try (RandomAccessFile raf = new RandomAccessFile(tables.get(i), "r")) {
+		            raf.readLine();
+		            String line;
+		            while ((line = raf.readLine()) != null) {
+		                if (i == 0) rowsTable1.add(line.trim().split(" "));
+		                else rowsTable2.add(line.trim().split(" "));
+		            }
+		        }
+		    }
+
+		    System.out.println("📋 Table Data:");
+
+		    for (String[] row1 : rowsTable1) {
+		        for (String[] row2 : rowsTable2) {
+		            StringBuilder builder = new StringBuilder();
+
+		            for (int i = 0; i < items.size() - tables.size(); i++) {
+		                String attr = items.get(i);
+		                File tableFile = variableTables.get(attr);
+		                int colIndex = variableColumns.get(attr);
+
+		                String[] currentRow = tableFile.equals(tables.get(0)) ? row1 : row2;
+
+		                if (colIndex >= currentRow.length) {
+		                    builder.append("null");
+		                } else {
+		                    builder.append(currentRow[colIndex]);
+		                }
+
+		                builder.append(" ".repeat(Math.max(1, 15 - currentRow[colIndex].length())));
+		            }
+
+		            System.out.println(builder.toString());
+		        }
+		    }
+		    return;
+		} else {
+		    ArrayList<List<String[]>> tableData = new ArrayList<>();
+
+		    for (File file : tables) {
+		        List<String[]> rows = new ArrayList<>();
+		        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+		            raf.readLine();
+		            String line;
+		            while ((line = raf.readLine()) != null) {
+		                rows.add(line.trim().split(" "));
+		            }
+		        }
+		        tableData.add(rows);
+		    }
+
+		    // Cartesian product setup
+		    int numTables = tableData.size();
+		    int[] indices = new int[numTables];
+		    int[] sizes = tableData.stream().mapToInt(List::size).toArray();
+
+		    String[] conditionParts = new String[3];
+		    conditionParts[1] = condition.contains("!=") ? "!=" :
+		                        condition.contains(">=") ? ">=" :
+		                        condition.contains("<=") ? "<=" :
+		                        condition.contains(">") ? ">" :
+		                        condition.contains("<") ? "<" : "=";
+
+		    String[] condSplit = condition.split(conditionParts[1]);
+		    String leftAttr = condSplit[0].trim();
+		    String rightAttr = condSplit[1].trim();
+
+		    boolean isRightAttrColumn = variableColumns.containsKey(rightAttr);
+
+		    File tableL = variableTables.get(leftAttr);
+		    int colL = variableColumns.get(leftAttr);
+		    int tableLIndex = tables.indexOf(tableL);
+
+		    File tableR = null;
+		    int colR = -1;
+		    int tableRIndex = -1;
+
+		    if (isRightAttrColumn) {
+		        tableR = variableTables.get(rightAttr);
+		        colR = variableColumns.get(rightAttr);
+		        tableRIndex = tables.indexOf(tableR);
+		    }
+
+		    System.out.println("📋 Table Data:");
+		    boolean matched = false;
+
+		    outer:
+		    while (true) {
+		        StringBuilder rowOut = new StringBuilder();
+		        String[] leftRow = tableData.get(tableLIndex).get(indices[tableLIndex]);
+		        String leftVal = leftRow[colL];
+		        String rightVal = "";
+
+		        if (isRightAttrColumn) {
+		            String[] rightRow = tableData.get(tableRIndex).get(indices[tableRIndex]);
+		            rightVal = rightRow[colR];
+		        } else {
+		            rightVal = rightAttr;
+		        }
+
+		        conditionParts[0] = leftVal;
+		        conditionParts[2] = rightVal;
+
+		        if (evaluateExpression(conditionParts, leftVal)) {
+		            for (int i = 0; i < items.size() - tables.size(); i++) {
+		                String attr = items.get(i);
+		                File sourceFile = variableTables.get(attr);
+		                int columnIndex = variableColumns.get(attr);
+		                int tableIndex = tables.indexOf(sourceFile);
+
+		                String[] currentRow = tableData.get(tableIndex).get(indices[tableIndex]);
+		                String value = columnIndex < currentRow.length ? currentRow[columnIndex] : "null";
+
+		                rowOut.append(value).append(" ".repeat(Math.max(1, 15 - value.length())));
+		            }
+		            System.out.println(rowOut.toString());
+		            matched = true;
+		        }
+
+		        // Update indices for next combination
+		        for (int i = numTables - 1; i >= 0; i--) {
+		            if (++indices[i] < sizes[i]) break;
+		            if (i == 0) break outer;
+		            indices[i] = 0;
+		        }
+		    }
+
+		    if (!matched) System.out.println("No items match the condition.");
+		    return;
+		}
+
 	}
 
 }
