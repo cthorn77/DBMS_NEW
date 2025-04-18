@@ -17,6 +17,8 @@ public class UserInterface {
 	private File file;
 	private ArrayList<String> items;
 	private String condition = "";
+	private String[] commandLine;
+	private Boolean run = true;
 	private BinarySearchTree bst = new BinarySearchTree();
 	public UserInterface(Scanner kb) {
 		this.kb = kb;
@@ -27,7 +29,6 @@ public class UserInterface {
 	@SuppressWarnings("unlikely-arg-type")
 	public void start() throws IOException {
 //		System.out.println("Enter a command");
-		Boolean run = true;
 		
 		while (run) {
 //			String choice = kb.nextLine();
@@ -38,10 +39,23 @@ public class UserInterface {
 
 		    do {
 		        line2 = kb.nextLine().trim();
-		        commandBuilder.append(line2).append(" ");
+		        if (!line2.replace(" ", "").equals("")) {
+		        	commandBuilder.append(line2).append(" ");
+		        }
+		        
+		        if (line2.equals(";")) {
+		        	commandBuilder.deleteCharAt(commandBuilder.length() - 3);
+		        }
 		    } while (!line2.endsWith(";"));
-
+		    
+		     
 		    String choice = commandBuilder.toString().trim();
+		    
+		    if (choice.contains("CREATE TABLE")) {
+		    	choice = choice.replaceAll("\\s*,\\s*", ",");
+		    }
+
+		    
 		    
 			switch(parseString(choice, inUse)) {
 			case "CREATE_DATABASE":
@@ -109,6 +123,11 @@ public class UserInterface {
 
 					if (dataTypes.length == 0) {
 					    System.out.println("❌ Data types array is empty!");
+					    isValid = false;
+					}
+					
+					if (values.length != dataTypes.length) {
+						System.out.println("❌ Value count doesn't match the table!");
 					    isValid = false;
 					}
 
@@ -191,6 +210,8 @@ public class UserInterface {
 			//SELECT Age, Name FROM Students WHERE Age > 16;
 			case "SELECT_MULTIPLE_FROM":
 				
+				condition = "";
+				
 				if (inUse.equals("")) {
 					System.out.println("❌ Must select a database");
 				} else {
@@ -258,6 +279,12 @@ public class UserInterface {
 				} else {
 					command = choice.replace(";", "").replace(")", "").split("\\(");
 					tableName = command[0].split(" ")[1];
+					
+					if (command.length < 2) {
+						System.out.println("❌ Error: Please enter a proper command.");
+						break;
+					}
+					
 					command = command[1].split(",");
 					
 					table = new Table(tableName, inUse);
@@ -338,15 +365,29 @@ public class UserInterface {
 				command = choice.replace(";", "").split(" ");
 				String line = "";
 				String complete = "";
+				String[] completeLines;
 				
 				if (command.length == 2) {
 					try (RandomAccessFile raf = new RandomAccessFile(command[1] + ".txt", "rw")) {
 						while ((line = raf.readLine()) != null) {
+							
+							if (line.replace(" ", "").equals("")) {
+								continue;
+							}
+							
 							complete += line.trim() + " ";
 							if (complete.trim().endsWith(";")) {
-								runInput(complete.trim());
-								complete = "";
-								break;
+								
+								if (complete.trim().chars().filter(ch -> ch == ';').count() > 1) {
+								    completeLines = complete.trim().split(";");
+								    
+								    for (String c : completeLines) {
+								    	runInput(c.trim() + ";");
+								    }
+								} else {
+									runInput(complete.trim());
+									complete = "";
+								}
 							} else {
 								continue;
 							}		
@@ -365,11 +406,24 @@ public class UserInterface {
 						System.setOut(new PrintStream(file));
 						
 						while ((line = raf.readLine()) != null) {
+							
+							if (line.replace(" ", "").equals("")) {
+								continue;
+							}
+							
 							complete += line.trim() + " ";
 							if (complete.trim().endsWith(";")) {
-								runInput(complete.trim());
-								complete = "";
-								break;
+								
+								if (complete.trim().chars().filter(ch -> ch == ';').count() > 1) {
+								    completeLines = complete.trim().split(";");
+								    
+								    for (String c : completeLines) {
+								    	runInput(c.trim() + ";");
+								    }
+								} else {
+									runInput(complete.trim());
+									complete = "";
+								}
 							} else {
 								continue;
 							}		
@@ -700,6 +754,12 @@ public class UserInterface {
 				} else {
 					command = choice.replace(";", "").replace(")", "").split("\\(");
 					tableName = command[0].split(" ")[1];
+					
+					if (command.length < 2) {
+						System.out.println("❌ Error: Please enter a proper command.");
+						break;
+					}
+					
 					command = command[1].split(",");
 					
 					table = new Table(tableName, inUse);
@@ -845,6 +905,10 @@ public class UserInterface {
 				}
 		    	
 		    	break;
+		    	
+			case "EXIT":
+				run = false;
+				break;
 	
 			default:
 				System.out.println("❌ Error: Please enter a proper command.");

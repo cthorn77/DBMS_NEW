@@ -39,6 +39,16 @@ public class Table {
 		//Make column names separate from command
 		String[] columnNames = command[1].split(","); 
 		
+		if (columnNames.length == 0 || columnNames[0].trim().isEmpty()) {
+		    System.out.println("❌ Must have columns when creating table");
+		    return;
+		}
+		
+		if (columnNames[0].split(" ").length == 1) {
+			System.out.println("❌ Must have data types for each column when creating table");
+		    return;
+		}
+		
 		//Check for valid data types before adding
 		for (int i = 0; i<columnNames.length; i++) {
 			if (columnNames[i].split(" ")[1].equals("INTEGER")) {
@@ -70,7 +80,7 @@ public class Table {
 			raf.writeBytes("}\n");
 			
 		} catch (Exception e) {
-			System.out.println("Failed to add columns to file.");
+			System.out.println("❌ Failed to add columns to file.");
 		}
 	}
 	
@@ -1554,6 +1564,10 @@ public class Table {
 		            for (int i = 0; i < items.size() - tables.size(); i++) {
 		                String attr = items.get(i);
 		                File sourceFile = variableTables.get(attr);
+		                if (!variableColumns.containsKey(attr)) {
+		                    System.out.println("❌ Column '" + attr + "' not found in variableColumns.");
+		                    return;
+		                }
 		                int columnIndex = variableColumns.get(attr);
 		                int tableIndex = tables.indexOf(sourceFile);
 
